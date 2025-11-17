@@ -87,7 +87,7 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   });
 }
 
-export function setupPromptIpcHandlers(): void {
+export function setupPromptIPCHandlers(): void {
   ipcMain.handle('prompt:get-label', () => {
     return currentPromptLabel;
   });

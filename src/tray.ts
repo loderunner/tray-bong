@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { Menu, Tray, nativeImage } from 'electron';
 
 import * as logger from './logger/main';
-import { createPromptWindow, setupPromptIpcHandlers } from './prompt/main';
+import { createPromptWindow, setupPromptIPCHandlers } from './prompt/main';
 import {
   type SystemPrompt,
   getPromptsFilePath,
@@ -43,9 +43,6 @@ function updateTrayMenu(trayInstance: Tray, prompts: SystemPrompt[]): void {
 }
 
 export async function createTray(): Promise<void> {
-  setupPromptIpcHandlers();
-  setupSettingsIPCHandlers();
-
   let image = nativeImage.createFromNamedImage('sparkles');
   image = image.resize({ height: 16 });
   image.setTemplateImage(true);

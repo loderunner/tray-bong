@@ -3,6 +3,8 @@ import started from 'electron-squirrel-startup';
 
 import { setupLoggerIPC } from './logger/ipc';
 import * as logger from './logger/main';
+import { setupPromptIPCHandlers } from './prompt/main';
+import { setupSettingsIPCHandlers } from './settings/main';
 import { createTray } from './tray';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -17,6 +19,9 @@ app.on('ready', () => {
   void (async () => {
     await logger.init();
     setupLoggerIPC();
+
+    setupPromptIPCHandlers();
+    setupSettingsIPCHandlers();
 
     logger.info('Application started');
 
