@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 import { Menu, Tray, nativeImage } from 'electron';
 
+import * as logger from './logger/main';
 import { createPromptWindow, setupPromptIpcHandlers } from './prompt/main';
 import {
   type SystemPrompt,
@@ -52,15 +53,19 @@ export async function createTray(): Promise<void> {
 
   await initializePromptsFile();
   const prompts = await loadPrompts();
+  logger.debug(`Loaded ${prompts.length} prompts`);
   updateTrayMenu(tray, prompts);
 
   const filePath = getPromptsFilePath();
   fs.watch(filePath, (eventType) => {
-    if (eventType === 'change' && tray !== null) {
-      const trayInstance = tray;
-      void loadPrompts().then((updatedPrompts) => {
+    void (async () => {
+      if (eventType === 'change' && tray !== null) {
+        logger.info('Prompts file changed, reloading prompts');
+        const trayInstance = tray;
+        const updatedPrompts = await loadPrompts();
+        logger.debug(`Reloaded ${updatedPrompts.length} prompts`);
         updateTrayMenu(trayInstance, updatedPrompts);
-      });
-    }
+      }
+    })();
   });
 }

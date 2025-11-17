@@ -2,10 +2,11 @@ import path from 'node:path';
 
 import { BrowserWindow, ipcMain, shell } from 'electron';
 
+import * as logger from '../logger/main';
 import { getPromptsFilePath } from '../prompts';
 
-declare const SETTINGS_VITE_DEV_SERVER_URL: string;
-declare const SETTINGS_VITE_NAME: string;
+declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
+declare const SETTINGS_VITE_NAME: string | undefined;
 
 let settingsWindow: BrowserWindow | null = null;
 
@@ -15,30 +16,56 @@ export function createSettingsWindow(): void {
     return;
   }
 
+  const preloadPath = path.join(__dirname, 'settings-preload.js');
+
   settingsWindow = new BrowserWindow({
     width: 600,
     height: 400,
     webPreferences: {
-      preload: path.join(__dirname, 'settings-preload.js'),
+      preload: preloadPath,
       sandbox: process.env.NODE_ENV !== 'development',
       devTools: true,
     },
   });
 
-  if (SETTINGS_VITE_DEV_SERVER_URL !== '') {
-    void settingsWindow.loadURL(
-      `${SETTINGS_VITE_DEV_SERVER_URL}/settings.html`,
+  settingsWindow.webContents.on(
+    'did-fail-load',
+    (_event, errorCode, errorDescription, validatedURL) => {
+      logger.error(
+        `Settings window: did-fail-load - code: ${errorCode}, description: ${errorDescription}, URL: ${validatedURL}`,
+      );
+    },
+  );
+
+  settingsWindow.webContents.on('render-process-gone', (_event, details) => {
+    logger.error(
+      `Settings window: renderer process gone - reason: ${details.reason}`,
     );
+  });
+
+  settingsWindow.on('unresponsive', () => {
+    logger.error('Settings window: became unresponsive');
+  });
+
+  const isDevServer =
+    SETTINGS_VITE_DEV_SERVER_URL !== undefined &&
+    SETTINGS_VITE_DEV_SERVER_URL !== '';
+
+  if (isDevServer) {
+    const url = `${SETTINGS_VITE_DEV_SERVER_URL}/settings.html`;
+    logger.info(`Loading settings from dev server: ${url}`);
+    void settingsWindow.loadURL(url);
   } else {
-    void settingsWindow.loadFile(
-      path.join(
-        __dirname,
-        '..',
-        'renderer',
-        SETTINGS_VITE_NAME,
-        'settings.html',
-      ),
+    const htmlPath = path.join(
+      __dirname,
+      '..',
+      'renderer',
+      SETTINGS_VITE_NAME!,
+      'settings.html',
     );
+
+    logger.info(`Loading settings from file: ${htmlPath}`);
+    void settingsWindow.loadFile(htmlPath);
   }
 
   settingsWindow.on('closed', () => {

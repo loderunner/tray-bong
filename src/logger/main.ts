@@ -5,9 +5,18 @@ import { app } from 'electron';
 
 const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
+type LogLevel = 'ERROR' | 'INFO' | 'DEBUG';
+const MIN_LOG_LEVEL: LogLevel = 'INFO'; // Only show INFO and ERROR, not DEBUG
+
 let logFilePath: string | null = null;
 let logStream: fs.WriteStream | NodeJS.WriteStream | null = null;
 const logBuffer: string[] = [];
+
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  ERROR: 0,
+  INFO: 1,
+  DEBUG: 2,
+};
 
 /**
  * Converts a Date to an ISO string in local timezone.
@@ -23,7 +32,10 @@ function toLocalISOString(date: Date): string {
   // Get ISO string and replace 'Z' with timezone offset
   const isoString = localTime.toISOString();
   const timezoneOffset = -offset; // Flip sign
-  const hours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, '0');
+  const hours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(
+    2,
+    '0',
+  );
   const minutes = String(Math.abs(timezoneOffset) % 60).padStart(2, '0');
   const sign = timezoneOffset >= 0 ? '+' : '-';
 
@@ -38,7 +50,11 @@ function toLocalISOString(date: Date): string {
  * @param message - The log message
  * @returns Formatted log line
  */
-function formatLogLine(level: string, context: string, message: string): string {
+function formatLogLine(
+  level: string,
+  context: string,
+  message: string,
+): string {
   const timestamp = toLocalISOString(new Date());
   return `${timestamp} [${level}][${context}] ${message}\n`;
 }
@@ -69,16 +85,24 @@ async function rotateLogIfNeeded(): Promise<void> {
 /**
  * Writes a log message to the file.
  * If the log stream is not yet initialized, buffers the message.
+ * Filters out messages below the minimum log level.
  *
  * @param level - The log level
  * @param context - The process context
  * @param message - The log message
  */
 export function writeLog(
-  level: string,
+  level: LogLevel,
   context: string,
   message: string,
 ): void {
+  const levelPriority = LOG_LEVEL_PRIORITY[level];
+  const minPriority = LOG_LEVEL_PRIORITY[MIN_LOG_LEVEL];
+
+  if (levelPriority > minPriority) {
+    return; // Skip logs below minimum level
+  }
+
   const logLine = formatLogLine(level, context, message);
 
   if (logStream === null) {
@@ -141,4 +165,3 @@ export function info(message: string): void {
 export function debug(message: string): void {
   writeLog('DEBUG', 'Main', message);
 }
-
