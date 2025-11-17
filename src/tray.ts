@@ -1,37 +1,39 @@
 import fs from 'node:fs';
 
-import { Menu, Tray, nativeImage, shell } from 'electron';
+import { Menu, Tray, nativeImage } from 'electron';
 
+import { createPromptWindow, setupPromptIpcHandlers } from './prompt/main';
 import {
   type SystemPrompt,
   getPromptsFilePath,
   initializePromptsFile,
   loadPrompts,
 } from './prompts';
+import {
+  createSettingsWindow,
+  setupSettingsIPCHandlers,
+} from './settings/main';
 
 let tray: Tray | null = null;
 
 function updateTrayMenu(trayInstance: Tray, prompts: SystemPrompt[]): void {
-  const menuItems: Electron.MenuItemConstructorOptions[] = [];
-
-  for (const prompt of prompts) {
-    menuItems.push({
+  const menuItems: Electron.MenuItemConstructorOptions[] = prompts.map(
+    (prompt) => ({
       label: prompt.label,
       click: () => {
-        console.log(prompt.prompt);
+        createPromptWindow(prompt);
       },
-    });
-  }
+    }),
+  );
 
   if (prompts.length > 0) {
     menuItems.push({ type: 'separator' });
   }
 
   menuItems.push({
-    label: 'Edit Prompts...',
+    label: 'Settings...',
     click: () => {
-      const filePath = getPromptsFilePath();
-      void shell.openPath(filePath);
+      createSettingsWindow();
     },
   });
 
@@ -40,6 +42,9 @@ function updateTrayMenu(trayInstance: Tray, prompts: SystemPrompt[]): void {
 }
 
 export async function createTray(): Promise<void> {
+  setupPromptIpcHandlers();
+  setupSettingsIPCHandlers();
+
   let image = nativeImage.createFromNamedImage('sparkles');
   image = image.resize({ height: 16 });
   image.setTemplateImage(true);

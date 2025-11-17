@@ -9,8 +9,10 @@ if (started) {
 }
 
 app.dock?.hide();
-app.applicationMenu = null;
+// app.applicationMenu = null;
 
 app.on('ready', () => {
   void createTray();
 });
+
+app.on('window-all-closed', () => {});
