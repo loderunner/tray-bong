@@ -3,20 +3,21 @@ type SettingsAPI = {
 };
 
 declare global {
-  interface Window {
-    settingsAPI: SettingsAPI;
-  }
+  var settingsAPI: SettingsAPI;
 }
 
 function handleOpenPromptsFile(): void {
-  void window.settingsAPI.openPromptsFile();
+  void settingsAPI.openPromptsFile();
 }
 
 export default function App() {
   return (
     <>
-      <h1>Settings</h1>
-      <button id="open-prompts-file" onClick={handleOpenPromptsFile}>
+      <h1 className="mb-4 text-2xl font-bold">Settings</h1>
+      <button
+        onClick={handleOpenPromptsFile}
+        className="rounded-md bg-blue-500 px-4 py-2 text-base text-white"
+      >
         Open Prompts File
       </button>
     </>
