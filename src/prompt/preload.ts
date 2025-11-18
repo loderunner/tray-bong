@@ -1,7 +1,7 @@
 import type { UIMessage, UIMessageChunk } from 'ai';
 import { contextBridge, ipcRenderer } from 'electron';
 
-import type { StreamChatMessageData } from './main';
+import type { StreamChatControlMessage, StreamChatMessageData } from './main';
 
 import { createLogger } from '@/logger/renderer';
 
@@ -22,7 +22,7 @@ contextBridge.exposeInMainWorld('promptAPI', {
       onDone: () => void;
       onError: (error: string) => void;
     },
-  ): void => {
+  ): (() => void) => {
     logger.info(`streamChat called with ${messages.length} messages`);
 
     const { port1, port2 } = new MessageChannel();
@@ -67,6 +67,18 @@ contextBridge.exposeInMainWorld('promptAPI', {
         callbacks.onError(errorMessage);
         port1.close();
       }
+    };
+
+    let isCleanedUp = false;
+    return () => {
+      if (isCleanedUp) {
+        logger.debug('Cleanup already called, returning');
+        return;
+      }
+      isCleanedUp = true;
+      logger.info('Cleanup called, aborting stream');
+      port1.postMessage({ abort: true } satisfies StreamChatControlMessage);
+      port1.close();
     };
   },
 });

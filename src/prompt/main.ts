@@ -2,8 +2,9 @@ import path from 'node:path';
 
 import { anthropic } from '@ai-sdk/anthropic';
 import type { UIMessage, UIMessageChunk } from 'ai';
-import { convertToModelMessages, streamText } from 'ai';
+import { convertToModelMessages, smoothStream, streamText } from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
+import type { MessageEvent } from 'electron';
 
 import * as logger from '@/logger/main';
 import type { SystemPrompt } from '@/prompts';
@@ -15,6 +16,8 @@ export type StreamChatMessageData =
   | { chunks: UIMessageChunk[] }
   | { done: true }
   | { error: string };
+
+export type StreamChatControlMessage = { abort: true };
 
 let promptWindow: BrowserWindow | null = null;
 let currentPromptLabel: string = '';
@@ -109,12 +112,28 @@ export function setupPromptIPCHandlers(): void {
     async (event, { messages: uiMessages }: { messages: UIMessage[] }) => {
       const [port] = event.ports;
 
+      const abortController = new AbortController();
+
+      // Listen for abort messages on the port
+      port.on('message', (messageEvent: MessageEvent) => {
+        const message = messageEvent.data as StreamChatControlMessage;
+        if ('abort' in message) {
+          logger.debug('Received abort message on port');
+          abortController.abort();
+          port.close();
+        }
+      });
+
+      port.start();
+
       try {
         const modelMessages = convertToModelMessages(uiMessages);
 
         const result = streamText({
           model,
           messages: modelMessages,
+          experimental_transform: smoothStream(),
+          abortSignal: abortController.signal,
         });
 
         const uiStream = result.toUIMessageStream({
@@ -127,6 +146,11 @@ export function setupPromptIPCHandlers(): void {
 
         let chunkCount = 0;
         for await (const chunk of uiStream) {
+          if (abortController.signal.aborted) {
+            logger.debug('Stream aborted during iteration');
+            break;
+          }
+
           chunkCount++;
           logger.debug(
             `Stream chunk ${chunkCount}: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
@@ -134,10 +158,21 @@ export function setupPromptIPCHandlers(): void {
           port.postMessage({ chunks: [chunk] });
         }
 
-        logger.info(`Stream complete, total chunks: ${chunkCount}`);
-        port.postMessage({ done: true });
-        port.close();
+        // Only send done/close if not aborted
+        if (!abortController.signal.aborted) {
+          logger.info(`Stream complete, total chunks: ${chunkCount}`);
+          port.postMessage({ done: true });
+          port.close();
+        } else {
+          logger.debug('Stream aborted, not sending done message');
+        }
       } catch (error) {
+        // Ignore abort errors
+        if (error instanceof Error && error.name === 'AbortError') {
+          logger.debug('Stream aborted on AbortError');
+          return;
+        }
+
         let errorMessage: string;
         if (error instanceof Error) {
           errorMessage = error.message;

@@ -12,7 +12,7 @@ type PromptAPI = {
       onDone: () => void;
       onError: (error: string) => void;
     },
-  ) => void;
+  ) => () => void;
 };
 
 declare global {
@@ -67,29 +67,33 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, stop } = useChat({
     transport: {
-      sendMessages: async ({ messages: uiMessages }) => {
-        logger.info(
-          `[App] sendMessages called with ${uiMessages.length} messages`,
-        );
+      sendMessages: async ({ messages: uiMessages, abortSignal }) => {
+        logger.info(`sendMessages called with ${uiMessages.length} messages`);
 
         return new ReadableStream<UIMessageChunk>({
           start(controller) {
-            logger.debug('[App] ReadableStream started');
-            promptAPI.streamChat(uiMessages, {
+            if (abortSignal !== undefined && abortSignal.aborted) {
+              logger.debug('ReadableStream aborted before start');
+              controller.close();
+              return;
+            }
+
+            logger.debug('ReadableStream started');
+            const abortStream = promptAPI.streamChat(uiMessages, {
               onChunk: (chunk) => {
                 logger.debug(
-                  `[App] onChunk: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
+                  `onChunk: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
                 );
                 controller.enqueue(chunk);
               },
               onDone: () => {
-                logger.debug('[App] onDone called');
+                logger.debug('onDone called');
                 controller.close();
               },
               onError: (error) => {
-                logger.error(`[App] onError: ${error}`);
+                logger.error(`onError: ${error}`);
                 controller.enqueue({
                   type: 'error',
                   errorText: error,
@@ -97,9 +101,15 @@ export default function App() {
                 controller.close();
               },
             });
+
+            abortSignal?.addEventListener('abort', () => {
+              logger.debug('ReadableStream aborted');
+              abortStream();
+              controller.close();
+            });
           },
           cancel() {
-            logger.debug('[App] ReadableStream cancelled');
+            logger.debug('ReadableStream cancelled');
           },
         });
       },
@@ -154,7 +164,9 @@ export default function App() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (input.trim() !== '' && status !== 'streaming') {
+          if (status === 'streaming') {
+            void stop();
+          } else if (input.trim() !== '') {
             void sendMessage({ text: input.trim() });
             setInput('');
           }
@@ -174,14 +186,9 @@ export default function App() {
         />
         <button
           type="submit"
-          disabled={
-            status === 'streaming' ||
-            status === 'submitted' ||
-            input.trim() === ''
-          }
           className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
         >
-          Send
+          {status === 'streaming' ? 'Stop' : 'Send'}
         </button>
       </form>
     </>

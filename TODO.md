@@ -13,6 +13,7 @@
 
 # Later
 
+- Better colors & dark mode
 - Select a model & API key from the settings ui
 - Push state to Renderer processes on creation and store in a context
 - Expose refresh and mutation functions to Renderer processes through the
