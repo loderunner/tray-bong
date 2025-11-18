@@ -153,11 +153,11 @@ export default function App() {
   );
 
   return (
-    <>
+    <div className="flex h-full flex-col">
       <h1 className="shrink-0 border-b border-white/10 p-4 text-xl font-semibold">
         {label}
       </h1>
-      <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
@@ -171,26 +171,28 @@ export default function App() {
             setInput('');
           }
         }}
-        className="flex shrink-0 gap-2 border-t border-white/10 p-4"
+        className="shrink-0 border-t border-white/10 p-4"
       >
-        <input
-          ref={inputRef}
-          type="text"
-          value={input}
-          onChange={(e) => {
-            setInput(e.target.value);
-          }}
-          placeholder="Type your message..."
-          disabled={status === 'streaming' || status === 'submitted'}
-          className="flex-1 rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <button
-          type="submit"
-          className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
-        >
-          {status === 'streaming' ? 'Stop' : 'Send'}
-        </button>
+        <div className="flex gap-2">
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+            }}
+            placeholder="Type your message..."
+            disabled={status === 'streaming' || status === 'submitted'}
+            className="flex-1 rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+          >
+            {status === 'streaming' ? 'Stop' : 'Send'}
+          </button>
+        </div>
       </form>
-    </>
+    </div>
   );
 }
