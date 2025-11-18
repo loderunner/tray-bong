@@ -66,6 +66,7 @@ export default function App() {
   const [systemPrompt, setSystemPrompt] = useState<string>('');
   const [showSystemPrompt, setShowSystemPrompt] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
+  const [streamingError, setStreamingError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -96,6 +97,7 @@ export default function App() {
               },
               onError: (error) => {
                 logger.error(`onError: ${error}`);
+                setStreamingError(error);
                 controller.enqueue({
                   type: 'error',
                   errorText: error,
@@ -120,9 +122,11 @@ export default function App() {
       },
     },
     onError: (error) => {
+      const errorMessage = error.message;
       logger.error(
-        `useChat error: ${error.message} (${error.stack?.split('\n')[1].trim()})`,
+        `useChat error: ${errorMessage} (${error.stack?.split('\n')[1].trim()})`,
       );
+      setStreamingError(errorMessage);
     },
   });
 
@@ -191,6 +195,23 @@ export default function App() {
           </button>
         )}
       </div>
+      {streamingError !== null && (
+        <div className="shrink-0 border-b border-red-500/30 bg-red-500/10 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex-1 text-sm text-red-300">{streamingError}</div>
+            <button
+              type="button"
+              onClick={() => {
+                setStreamingError(null);
+              }}
+              className="shrink-0 cursor-pointer rounded px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20"
+              aria-label="Dismiss error"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
         <div ref={messagesEndRef} />
@@ -203,6 +224,7 @@ export default function App() {
           } else if (input.trim() !== '') {
             void sendMessage({ text: input.trim() });
             setInput('');
+            setStreamingError(null);
           }
         }}
         className="shrink-0 border-t border-white/10 p-4"
