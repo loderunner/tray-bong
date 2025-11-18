@@ -1,5 +1,8 @@
 import path from 'node:path';
 
+import { anthropic } from '@ai-sdk/anthropic';
+import type { UIMessage, UIMessageChunk } from 'ai';
+import { convertToModelMessages, streamText } from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
 
 import * as logger from '../logger/main';
@@ -7,6 +10,11 @@ import type { SystemPrompt } from '../prompts';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
+
+export type StreamChatMessageData =
+  | { chunks: UIMessageChunk[] }
+  | { done: true }
+  | { error: string };
 
 let promptWindow: BrowserWindow | null = null;
 let currentPromptLabel: string = '';
@@ -79,7 +87,9 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   }
 
   promptWindow.on('blur', () => {
-    promptWindow?.close();
+    if (process.env.NODE_ENV !== 'development') {
+      promptWindow?.close();
+    }
   });
   promptWindow.on('closed', () => {
     promptWindow = null;
@@ -87,8 +97,62 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   });
 }
 
+const model = anthropic('claude-sonnet-4-5');
+
 export function setupPromptIPCHandlers(): void {
   ipcMain.handle('prompt:get-label', () => {
     return currentPromptLabel;
   });
+
+  ipcMain.on(
+    'prompt:stream-chat',
+    (event, { messages: uiMessages }: { messages: UIMessage[] }) => {
+      const [port] = event.ports;
+
+      void (async () => {
+        try {
+          const modelMessages = convertToModelMessages(uiMessages);
+
+          const result = streamText({
+            model,
+            messages: modelMessages,
+          });
+
+          const uiStream = result.toUIMessageStream({
+            originalMessages: uiMessages,
+          });
+
+          logger.info(
+            `Starting stream, originalMessages count: ${uiMessages.length}`,
+          );
+
+          let chunkCount = 0;
+          for await (const chunk of uiStream) {
+            chunkCount++;
+            logger.debug(
+              `Stream chunk ${chunkCount}: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
+            );
+            port.postMessage({ chunks: [chunk] });
+          }
+
+          logger.info(`Stream complete, total chunks: ${chunkCount}`);
+          port.postMessage({ done: true });
+          port.close();
+        } catch (error) {
+          let errorMessage: string;
+          if (error instanceof Error) {
+            errorMessage = error.message;
+            if (error.stack !== undefined) {
+              errorMessage += ` (${error.stack.split('\n')[1].trim()})`;
+            }
+          } else {
+            errorMessage = String(error);
+          }
+          logger.error(`Error streaming chat: ${errorMessage}`);
+          port.postMessage({ error: errorMessage });
+          port.close();
+        }
+      })();
+    },
+  );
 }

@@ -3,17 +3,14 @@ import fs from 'node:fs';
 import { Menu, Tray, nativeImage } from 'electron';
 
 import * as logger from './logger/main';
-import { createPromptWindow, setupPromptIPCHandlers } from './prompt/main';
+import { createPromptWindow } from './prompt/main';
 import {
   type SystemPrompt,
   getPromptsFilePath,
   initializePromptsFile,
   loadPrompts,
 } from './prompts';
-import {
-  createSettingsWindow,
-  setupSettingsIPCHandlers,
-} from './settings/main';
+import { createSettingsWindow } from './settings/main';
 
 let tray: Tray | null = null;
 

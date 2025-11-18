@@ -6,7 +6,8 @@ import { app } from 'electron';
 const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
 type LogLevel = 'ERROR' | 'INFO' | 'DEBUG';
-const MIN_LOG_LEVEL: LogLevel = 'INFO'; // Only show INFO and ERROR, not DEBUG
+const MIN_LOG_LEVEL: LogLevel =
+  process.env.NODE_ENV === 'development' ? 'DEBUG' : 'INFO'; // Only show INFO and ERROR, not DEBUG
 
 let logFilePath: string | null = null;
 let logStream: fs.WriteStream | NodeJS.WriteStream | null = null;

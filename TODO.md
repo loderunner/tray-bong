@@ -1,0 +1,29 @@
+# Now
+
+-
+- Use fullStream instead of textStream, and just forward the data over the
+  MessagePort
+- Add a loading state to the message UI
+- Add a error state to the message UI
+- Replace the input field with a textarea that automatically resizes to fit the
+  content
+- Support abortController to abort the stream
+- Replace UUID with nanoid
+- Setup system prompt from prompt file
+- Show hidden system prompt
+
+# Later
+
+- Install react + react-hooks lint rules
+- Select a model & API key from the settings ui
+- Disable no-misused-promises lint rule & fix all callbacks that needed to IIFE
+  an async function to work around it
+- Push state to Renderer processes on creation and store in a context
+- Expose refresh and mutation functions to Renderer processes through the
+  context, based on useSWR, with a custom fetcher that uses the ipcRenderer to
+  send messages to the main process
+- Generate conversation title based on the input message
+- Save and restore past conversations
+- Solve dependency issues (deprecated and missing peer dependencies)
+- Remove all relative imports that use parent directory - replace with path
+  aliases (Needs to be handled by TypeScript & Vite)
