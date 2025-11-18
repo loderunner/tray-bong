@@ -51,15 +51,13 @@ export async function createTray(): Promise<void> {
   updateTrayMenu(tray, prompts);
 
   const filePath = getPromptsFilePath();
-  fs.watch(filePath, (eventType) => {
-    void (async () => {
-      if (eventType === 'change' && tray !== null) {
-        logger.info('Prompts file changed, reloading prompts');
-        const trayInstance = tray;
-        const updatedPrompts = await loadPrompts();
-        logger.debug(`Reloaded ${updatedPrompts.length} prompts`);
-        updateTrayMenu(trayInstance, updatedPrompts);
-      }
-    })();
+  fs.watch(filePath, async (eventType) => {
+    if (eventType === 'change' && tray !== null) {
+      logger.info('Prompts file changed, reloading prompts');
+      const trayInstance = tray;
+      const updatedPrompts = await loadPrompts();
+      logger.debug(`Reloaded ${updatedPrompts.length} prompts`);
+      updateTrayMenu(trayInstance, updatedPrompts);
+    }
   });
 }

@@ -15,18 +15,16 @@ if (started) {
 app.dock?.hide();
 // app.applicationMenu = null;
 
-app.on('ready', () => {
-  void (async () => {
-    await logger.init();
-    setupLoggerIPC();
+app.on('ready', async () => {
+  await logger.init();
+  setupLoggerIPC();
 
-    setupPromptIPCHandlers();
-    setupSettingsIPCHandlers();
+  setupPromptIPCHandlers();
+  setupSettingsIPCHandlers();
 
-    logger.info('Application started');
+  logger.info('Application started');
 
-    await createTray();
-  })();
+  await createTray();
 });
 
 app.on('window-all-closed', () => {});

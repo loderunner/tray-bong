@@ -106,53 +106,51 @@ export function setupPromptIPCHandlers(): void {
 
   ipcMain.on(
     'prompt:stream-chat',
-    (event, { messages: uiMessages }: { messages: UIMessage[] }) => {
+    async (event, { messages: uiMessages }: { messages: UIMessage[] }) => {
       const [port] = event.ports;
 
-      void (async () => {
-        try {
-          const modelMessages = convertToModelMessages(uiMessages);
+      try {
+        const modelMessages = convertToModelMessages(uiMessages);
 
-          const result = streamText({
-            model,
-            messages: modelMessages,
-          });
+        const result = streamText({
+          model,
+          messages: modelMessages,
+        });
 
-          const uiStream = result.toUIMessageStream({
-            originalMessages: uiMessages,
-          });
+        const uiStream = result.toUIMessageStream({
+          originalMessages: uiMessages,
+        });
 
-          logger.info(
-            `Starting stream, originalMessages count: ${uiMessages.length}`,
+        logger.info(
+          `Starting stream, originalMessages count: ${uiMessages.length}`,
+        );
+
+        let chunkCount = 0;
+        for await (const chunk of uiStream) {
+          chunkCount++;
+          logger.debug(
+            `Stream chunk ${chunkCount}: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
           );
-
-          let chunkCount = 0;
-          for await (const chunk of uiStream) {
-            chunkCount++;
-            logger.debug(
-              `Stream chunk ${chunkCount}: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
-            );
-            port.postMessage({ chunks: [chunk] });
-          }
-
-          logger.info(`Stream complete, total chunks: ${chunkCount}`);
-          port.postMessage({ done: true });
-          port.close();
-        } catch (error) {
-          let errorMessage: string;
-          if (error instanceof Error) {
-            errorMessage = error.message;
-            if (error.stack !== undefined) {
-              errorMessage += ` (${error.stack.split('\n')[1].trim()})`;
-            }
-          } else {
-            errorMessage = String(error);
-          }
-          logger.error(`Error streaming chat: ${errorMessage}`);
-          port.postMessage({ error: errorMessage });
-          port.close();
+          port.postMessage({ chunks: [chunk] });
         }
-      })();
+
+        logger.info(`Stream complete, total chunks: ${chunkCount}`);
+        port.postMessage({ done: true });
+        port.close();
+      } catch (error) {
+        let errorMessage: string;
+        if (error instanceof Error) {
+          errorMessage = error.message;
+          if (error.stack !== undefined) {
+            errorMessage += ` (${error.stack.split('\n')[1].trim()})`;
+          }
+        } else {
+          errorMessage = String(error);
+        }
+        logger.error(`Error streaming chat: ${errorMessage}`);
+        port.postMessage({ error: errorMessage });
+        port.close();
+      }
     },
   );
 }
