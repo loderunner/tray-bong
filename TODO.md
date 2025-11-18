@@ -9,7 +9,7 @@
 - Show system prompt as hidden revealable text
 - Show thinking indicator and stream thinking text - hidden revealable text
 - Support markdown in the message UI
-- Scrolling in the message UI
+- Scrolling in the message UI scrolls the input field too
 
 # Later
 
