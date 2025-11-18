@@ -171,7 +171,7 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-white/10 p-4">
+      <div className="no-drag shrink-0 border-b border-white/10 p-4">
         <h1 className="text-xl font-semibold">{label}</h1>
         {systemPrompt.trim() !== '' && (
           <button
@@ -191,7 +191,7 @@ export default function App() {
           </button>
         )}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="no-drag flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
@@ -205,7 +205,7 @@ export default function App() {
             setInput('');
           }
         }}
-        className="shrink-0 border-t border-white/10 p-4"
+        className="no-drag shrink-0 border-t border-white/10 p-4"
       >
         <div className="flex gap-2">
           <textarea
