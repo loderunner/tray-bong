@@ -26,6 +26,7 @@ export type StreamChatControlMessage = { abort: true };
 
 let promptWindow: BrowserWindow | null = null;
 let currentPromptLabel: string = '';
+let currentSystemPrompt: string = '';
 
 async function getModel(): Promise<LanguageModel> {
   const settings = await loadSettings();
@@ -61,6 +62,7 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   }
 
   currentPromptLabel = prompt.label;
+  currentSystemPrompt = prompt.prompt;
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
@@ -129,12 +131,16 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   promptWindow.on('closed', () => {
     promptWindow = null;
     currentPromptLabel = '';
+    currentSystemPrompt = '';
   });
 }
 
 export function setupPromptIPCHandlers(): void {
-  ipcMain.handle('prompt:get-label', () => {
-    return currentPromptLabel;
+  ipcMain.handle('prompt:get-info', () => {
+    return {
+      label: currentPromptLabel,
+      systemPrompt: currentSystemPrompt,
+    };
   });
 
   ipcMain.on(

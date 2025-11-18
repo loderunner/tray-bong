@@ -12,8 +12,8 @@ const logger = createLogger('Prompt');
 contextBridge.exposeInMainWorld('logger', logger);
 
 contextBridge.exposeInMainWorld('promptAPI', {
-  getPromptLabel: (): Promise<string> => {
-    return ipcRenderer.invoke('prompt:get-label');
+  getPromptInfo: (): Promise<{ label: string; systemPrompt: string }> => {
+    return ipcRenderer.invoke('prompt:get-info');
   },
   streamChat: (
     messages: UIMessage[],

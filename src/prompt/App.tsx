@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 type PromptAPI = {
-  getPromptLabel: () => Promise<string>;
+  getPromptInfo: () => Promise<{ label: string; systemPrompt: string }>;
   streamChat: (
     messages: UIMessage[],
     callbacks: {
@@ -63,11 +63,13 @@ function Message({ message }: { message: UIMessage }) {
 
 export default function App() {
   const [label, setLabel] = useState<string>('');
+  const [systemPrompt, setSystemPrompt] = useState<string>('');
+  const [showSystemPrompt, setShowSystemPrompt] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { messages, sendMessage, status, stop } = useChat({
+  const { messages, sendMessage, status, stop, setMessages } = useChat({
     transport: {
       sendMessages: async ({ messages: uiMessages, abortSignal }) => {
         logger.info(`sendMessages called with ${uiMessages.length} messages`);
@@ -130,13 +132,26 @@ export default function App() {
 
   useEffect(() => {
     async function init(): Promise<void> {
-      const promptLabel = await promptAPI.getPromptLabel();
+      const { label: promptLabel, systemPrompt: systemPromptText } =
+        await promptAPI.getPromptInfo();
       setLabel(promptLabel);
+      setSystemPrompt(systemPromptText);
       document.title = promptLabel;
+
+      // Initialize chat with system prompt as first message
+      if (systemPromptText.trim() !== '') {
+        setMessages([
+          {
+            id: 'system',
+            role: 'system',
+            parts: [{ type: 'text', text: systemPromptText }],
+          },
+        ]);
+      }
     }
 
     void init();
-  }, []);
+  }, [setMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -148,15 +163,34 @@ export default function App() {
 
   const messagesElements = useMemo(
     () =>
-      messages.map((message) => <Message key={message.id} message={message} />),
+      messages
+        .filter((message) => message.role !== 'system')
+        .map((message) => <Message key={message.id} message={message} />),
     [messages],
   );
 
   return (
     <div className="flex h-full flex-col">
-      <h1 className="shrink-0 border-b border-white/10 p-4 text-xl font-semibold">
-        {label}
-      </h1>
+      <div className="shrink-0 border-b border-white/10 p-4">
+        <h1 className="text-xl font-semibold">{label}</h1>
+        {systemPrompt.trim() !== '' && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowSystemPrompt(!showSystemPrompt);
+            }}
+            className={twMerge(
+              'mt-1 block cursor-pointer text-left text-xs transition-colors',
+              !showSystemPrompt &&
+                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 italic hover:text-white/50',
+              showSystemPrompt &&
+                'max-w-full whitespace-pre-wrap text-white/40 hover:text-white/60',
+            )}
+          >
+            {showSystemPrompt ? `▾ ${systemPrompt}` : `▸ ${systemPrompt}`}
+          </button>
+        )}
+      </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
         <div ref={messagesEndRef} />
