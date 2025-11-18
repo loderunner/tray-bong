@@ -23,6 +23,3 @@ export function createLogger(rendererName: string): {
     },
   };
 }
-
-
-

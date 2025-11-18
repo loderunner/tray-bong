@@ -2,12 +2,14 @@ import pluginJs from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
+  { files: ['**/*.{js,mjs,cjs,ts,tsx,jsx}'] },
   {
     ignores: ['dist/**/*', 'out/**/*', 'node_modules/**/*', '.vite/**/*'],
   },
@@ -83,6 +85,16 @@ export default [
       ],
     },
   },
+  {
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
+  },
+  reactPlugin.configs.flat.recommended,
+  reactPlugin.configs.flat['jsx-runtime'],
+  reactHooks.configs.flat.recommended,
   {
     files: ['**/*.test.ts'],
     ...vitest.configs.recommended,
