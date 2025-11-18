@@ -120,9 +120,7 @@ export default function App() {
       },
     },
     onError: (error) => {
-      logger.error(
-        `useChat error: ${error.message} (${error.stack?.split('\n')[1].trim()})`,
-      );
+      logger.error(`useChat error: ${error.message}`);
     },
   });
 
