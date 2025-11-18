@@ -23,7 +23,15 @@
     "onlyBuiltDependencies": [
       "electron",
       "electron-winstaller"
-    ]
+    ],
+    "overrides": {
+      "tmp@<=0.2.3": ">=0.2.4"
+    },
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@electron/fuses": "2"
+      }
+    }
   },
   "dependencies": {
     "@ai-sdk/anthropic": "3.0.0-beta.54",
