@@ -65,7 +65,7 @@ export default function App() {
   const [label, setLabel] = useState<string>('');
   const [input, setInput] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { messages, sendMessage, status, stop } = useChat({
     transport: {
@@ -174,16 +174,23 @@ export default function App() {
         className="shrink-0 border-t border-white/10 p-4"
       >
         <div className="flex gap-2">
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
             }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const form = e.currentTarget.form;
+                form?.requestSubmit();
+              }
+            }}
             placeholder="Type your message..."
             disabled={status === 'streaming' || status === 'submitted'}
-            className="flex-1 rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+            rows={input.split('\n').length}
+            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="submit"
