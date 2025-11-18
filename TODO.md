@@ -2,8 +2,6 @@
 
 - Add a loading state to the message UI
 - Add a error state to the message UI
-- Setup system prompt from prompt file
-- Show system prompt as hidden revealable text
 - Show thinking indicator and stream thinking text - hidden revealable text
 - Support markdown in the message UI
 - Move the chat window by grabbing anywhere without text or interaction
