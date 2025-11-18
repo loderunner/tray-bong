@@ -1,9 +1,9 @@
 import type { UIMessage, UIMessageChunk } from 'ai';
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { createLogger } from '../logger/renderer';
-
 import type { StreamChatMessageData } from './main';
+
+import { createLogger } from '@/logger/renderer';
 
 // Create logger at module scope so it's available in all functions
 const logger = createLogger('Prompt');

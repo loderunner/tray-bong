@@ -14,10 +14,7 @@
 
 # Later
 
-- Install react + react-hooks lint rules
 - Select a model & API key from the settings ui
-- Disable no-misused-promises lint rule & fix all callbacks that needed to IIFE
-  an async function to work around it
 - Push state to Renderer processes on creation and store in a context
 - Expose refresh and mutation functions to Renderer processes through the
   context, based on useSWR, with a custom fetcher that uses the ipcRenderer to
@@ -25,5 +22,3 @@
 - Generate conversation title based on the input message
 - Save and restore past conversations
 - Solve dependency issues (deprecated and missing peer dependencies)
-- Remove all relative imports that use parent directory - replace with path
-  aliases (Needs to be handled by TypeScript & Vite)

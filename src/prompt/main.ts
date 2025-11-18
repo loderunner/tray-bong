@@ -5,8 +5,8 @@ import type { UIMessage, UIMessageChunk } from 'ai';
 import { convertToModelMessages, streamText } from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
 
-import * as logger from '../logger/main';
-import type { SystemPrompt } from '../prompts';
+import * as logger from '@/logger/main';
+import type { SystemPrompt } from '@/prompts';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
