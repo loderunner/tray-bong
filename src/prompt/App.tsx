@@ -24,6 +24,36 @@ declare global {
   };
 }
 
+function ReasoningMessage({
+  reasoning,
+}: {
+  reasoning: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="flex max-w-[80%] flex-col self-start">
+      <button
+        type="button"
+        onClick={() => {
+          setIsExpanded(!isExpanded);
+        }}
+        className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-left text-xs text-white/40 transition-colors hover:text-white/60"
+      >
+        <span className="text-[0.7rem]">
+          {isExpanded ? '▾' : '▸'}
+        </span>
+        <span className="italic">Reasoning</span>
+      </button>
+      {isExpanded && (
+        <div className="mt-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs leading-5 text-white/50 wrap-break-word whitespace-pre-wrap">
+          {reasoning}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Message({ message }: { message: UIMessage }) {
   const textParts = message.parts.filter((part) => part.type === 'text');
   const hasEmptyText = textParts.some(
@@ -36,27 +66,60 @@ function Message({ message }: { message: UIMessage }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
+  // Check for reasoning in experimental_providerMetadata
+  let reasoning: string | null = null;
+  if (
+    'experimental_providerMetadata' in message &&
+    message.experimental_providerMetadata !== null &&
+    typeof message.experimental_providerMetadata === 'object' &&
+    'reasoning' in message.experimental_providerMetadata &&
+    typeof message.experimental_providerMetadata.reasoning === 'string'
+  ) {
+    reasoning = message.experimental_providerMetadata.reasoning;
+  }
+
+  // Also check for reasoning as a part type
+  if (reasoning === null) {
+    const reasoningParts = message.parts.filter(
+      (part) => part.type === 'reasoning',
+    );
+    if (reasoningParts.length > 0) {
+      const firstReasoningPart = reasoningParts[0];
+      if (
+        'reasoning' in firstReasoningPart &&
+        typeof firstReasoningPart.reasoning === 'string'
+      ) {
+        reasoning = firstReasoningPart.reasoning;
+      }
+    }
+  }
+
   return (
-    <div
-      className={twMerge(
-        'flex max-w-[80%] flex-col transition-opacity duration-200',
-        isUser && 'self-end',
-        isAssistant && 'self-start',
-      )}
-    >
+    <div className="flex flex-col gap-1">
       <div
         className={twMerge(
-          'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
-          isUser && 'rounded-br-sm bg-blue-500/20',
-          isAssistant && 'rounded-bl-sm bg-white/10',
+          'flex max-w-[80%] flex-col transition-opacity duration-200',
+          isUser && 'self-end',
+          isAssistant && 'self-start',
         )}
       >
-        {hasEmptyText ? (
-          <span className="inline-block animate-pulse text-white/60">●</span>
-        ) : (
-          textContent
-        )}
+        <div
+          className={twMerge(
+            'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
+            isUser && 'rounded-br-sm bg-blue-500/20',
+            isAssistant && 'rounded-bl-sm bg-white/10',
+          )}
+        >
+          {hasEmptyText ? (
+            <span className="inline-block animate-pulse text-white/60">●</span>
+          ) : (
+            textContent
+          )}
+        </div>
       </div>
+      {reasoning !== null && isAssistant && (
+        <ReasoningMessage reasoning={reasoning} />
+      )}
     </div>
   );
 }
