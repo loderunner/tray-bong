@@ -2,9 +2,6 @@
 
 - Add a loading state to the message UI
 - Add a error state to the message UI
-- Replace the input field with a textarea that automatically resizes to fit the
-  content
-- Support abortController to abort the stream
 - Setup system prompt from prompt file
 - Show system prompt as hidden revealable text
 - Show thinking indicator and stream thinking text - hidden revealable text
@@ -13,8 +10,9 @@
 
 # Later
 
+- Write each IPC like its own little backend service
+- Drop stack traces from error messages
 - Better colors & dark mode
-- Select a model & API key from the settings ui
 - Push state to Renderer processes on creation and store in a context
 - Expose refresh and mutation functions to Renderer processes through the
   context, based on useSWR, with a custom fetcher that uses the ipcRenderer to

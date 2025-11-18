@@ -5,6 +5,7 @@ import { setupLoggerIPC } from './logger/ipc';
 import * as logger from './logger/main';
 import { setupPromptIPCHandlers } from './prompt/main';
 import { setupSettingsIPCHandlers } from './settings/main';
+import { initializeSettingsFile } from './settings-data';
 import { createTray } from './tray';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -18,6 +19,8 @@ app.dock?.hide();
 app.on('ready', async () => {
   await logger.init();
   setupLoggerIPC();
+
+  await initializeSettingsFile();
 
   setupPromptIPCHandlers();
   setupSettingsIPCHandlers();

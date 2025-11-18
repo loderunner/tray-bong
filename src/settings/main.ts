@@ -4,6 +4,13 @@ import { BrowserWindow, ipcMain, shell } from 'electron';
 
 import * as logger from '@/logger/main';
 import { getPromptsFilePath } from '@/prompts';
+import {
+  type Provider,
+  type ProviderSettings,
+  getModels,
+  loadSettings,
+  saveSettings,
+} from '@/settings-data';
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
 declare const SETTINGS_VITE_NAME: string | undefined;
@@ -19,8 +26,9 @@ export function createSettingsWindow(): void {
   const preloadPath = path.join(__dirname, 'settings-preload.js');
 
   settingsWindow = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 800,
+    height: 600,
+    resizable: false,
     webPreferences: {
       preload: preloadPath,
       sandbox: process.env.NODE_ENV !== 'development',
@@ -77,5 +85,20 @@ export function setupSettingsIPCHandlers(): void {
   ipcMain.handle('settings:open-prompts-file', () => {
     const filePath = getPromptsFilePath();
     void shell.openPath(filePath);
+  });
+
+  ipcMain.handle('settings:get', async () => {
+    return await loadSettings();
+  });
+
+  ipcMain.handle(
+    'settings:save',
+    async (_event, settings: ProviderSettings) => {
+      await saveSettings(settings);
+    },
+  );
+
+  ipcMain.handle('settings:get-models', (_event, provider: Provider) => {
+    return getModels(provider);
   });
 }

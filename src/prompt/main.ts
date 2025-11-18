@@ -1,13 +1,18 @@
 import path from 'node:path';
 
-import { anthropic } from '@ai-sdk/anthropic';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
+import type { LanguageModel } from 'ai';
 import type { UIMessage, UIMessageChunk } from 'ai';
 import { convertToModelMessages, smoothStream, streamText } from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
 import type { MessageEvent } from 'electron';
+import { createOllama } from 'ollama-ai-provider-v2';
 
 import * as logger from '@/logger/main';
 import type { SystemPrompt } from '@/prompts';
+import { loadSettings } from '@/settings-data';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
@@ -21,6 +26,33 @@ export type StreamChatControlMessage = { abort: true };
 
 let promptWindow: BrowserWindow | null = null;
 let currentPromptLabel: string = '';
+
+async function getModel(): Promise<LanguageModel> {
+  const settings = await loadSettings();
+
+  switch (settings.provider) {
+    case 'openai': {
+      const provider = createOpenAI({ apiKey: settings.apiKey });
+      return provider(settings.model);
+    }
+    case 'anthropic': {
+      const provider = createAnthropic({ apiKey: settings.apiKey });
+      return provider(settings.model);
+    }
+    case 'google': {
+      const provider = createGoogleGenerativeAI({ apiKey: settings.apiKey });
+      return provider(settings.model);
+    }
+    case 'ollama': {
+      const baseURL =
+        settings.ollamaEndpoint !== undefined && settings.ollamaEndpoint !== ''
+          ? `${settings.ollamaEndpoint}/api`
+          : 'http://localhost:11434/api';
+      const provider = createOllama({ baseURL });
+      return provider(settings.model);
+    }
+  }
+}
 
 export function createPromptWindow(prompt: SystemPrompt): void {
   if (promptWindow !== null) {
@@ -100,8 +132,6 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   });
 }
 
-const model = anthropic('claude-sonnet-4-5');
-
 export function setupPromptIPCHandlers(): void {
   ipcMain.handle('prompt:get-label', () => {
     return currentPromptLabel;
@@ -128,6 +158,7 @@ export function setupPromptIPCHandlers(): void {
 
       try {
         const modelMessages = convertToModelMessages(uiMessages);
+        const model = await getModel();
 
         const result = streamText({
           model,
