@@ -24,7 +24,15 @@ declare global {
   };
 }
 
-function Message({ message }: { message: UIMessage }) {
+function Message({
+  message,
+  isLastMessage,
+  status,
+}: {
+  message: UIMessage;
+  isLastMessage: boolean;
+  status: 'idle' | 'streaming' | 'submitted';
+}) {
   const textParts = message.parts.filter((part) => part.type === 'text');
   const hasEmptyText = textParts.some(
     (part) => 'text' in part && part.text === '',
@@ -35,6 +43,10 @@ function Message({ message }: { message: UIMessage }) {
 
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
+
+  const showActivityIndicator =
+    hasEmptyText ||
+    (isAssistant && isLastMessage && status === 'submitted');
 
   return (
     <div
@@ -51,7 +63,7 @@ function Message({ message }: { message: UIMessage }) {
           isAssistant && 'rounded-bl-sm bg-white/10',
         )}
       >
-        {hasEmptyText ? (
+        {showActivityIndicator ? (
           <span className="inline-block animate-pulse text-white/60">●</span>
         ) : (
           textContent
@@ -161,12 +173,22 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
+  const visibleMessages = useMemo(
+    () => messages.filter((message) => message.role !== 'system'),
+    [messages],
+  );
+
   const messagesElements = useMemo(
     () =>
-      messages
-        .filter((message) => message.role !== 'system')
-        .map((message) => <Message key={message.id} message={message} />),
-    [messages],
+      visibleMessages.map((message, index) => (
+        <Message
+          key={message.id}
+          message={message}
+          isLastMessage={index === visibleMessages.length - 1}
+          status={status}
+        />
+      )),
+    [visibleMessages, status],
   );
 
   return (
@@ -193,6 +215,15 @@ export default function App() {
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
+        {status === 'submitted' &&
+          visibleMessages.length > 0 &&
+          visibleMessages[visibleMessages.length - 1]?.role === 'user' && (
+            <div className="flex max-w-[80%] flex-col self-start">
+              <div className="rounded-2xl rounded-bl-sm bg-white/10 px-4 py-3">
+                <span className="inline-block animate-pulse text-white/60">●</span>
+              </div>
+            </div>
+          )}
         <div ref={messagesEndRef} />
       </div>
       <form
