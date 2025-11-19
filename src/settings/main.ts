@@ -84,7 +84,7 @@ export function createSettingsWindow(): void {
 export function setupSettingsIPCHandlers(): void {
   ipcMain.handle('settings:open-prompts-file', () => {
     const filePath = getPromptsFilePath();
-    void shell.openPath(filePath);
+    void shell.showItemInFolder(filePath);
   });
 
   ipcMain.handle('settings:get', async () => {

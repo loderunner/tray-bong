@@ -20,7 +20,7 @@ export type SystemPrompt = z.infer<typeof SystemPromptSchema>;
 type PromptsFile = z.infer<typeof PromptsFileSchema>;
 
 export function getPromptsFilePath(): string {
-  return path.join(app.getPath('userData'), 'prompts.json');
+  return path.join(app.getPath('userData'), 'config', 'prompts.json');
 }
 
 function getDefaultPrompts(): PromptsFile {
@@ -72,6 +72,7 @@ export async function initializePromptsFile(): Promise<void> {
   } catch {
     // File doesn't exist, create it
     const defaultPrompts = getDefaultPrompts();
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
   }
 }
@@ -87,6 +88,7 @@ export async function loadPrompts(): Promise<SystemPrompt[]> {
   } catch (_error) {
     // If validation or migration fails, recreate default file
     const defaultPrompts = getDefaultPrompts();
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
     return defaultPrompts.prompts;
   }

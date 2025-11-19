@@ -213,9 +213,6 @@ export function setupPromptIPCHandlers(): void {
         let errorMessage: string;
         if (error instanceof Error) {
           errorMessage = error.message;
-          if (error.stack !== undefined) {
-            errorMessage += ` (${error.stack.split('\n')[1].trim()})`;
-          }
         } else {
           errorMessage = String(error);
         }

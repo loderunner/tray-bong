@@ -1,5 +1,5 @@
 import { useChat } from '@ai-sdk/react';
-import type { UIMessage, UIMessageChunk } from 'ai';
+import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,11 +24,16 @@ declare global {
   };
 }
 
-function Message({ message }: { message: UIMessage }) {
+function Message({
+  message,
+  isLastMessage,
+  status,
+}: {
+  message: UIMessage;
+  isLastMessage: boolean;
+  status: ChatStatus;
+}) {
   const textParts = message.parts.filter((part) => part.type === 'text');
-  const hasEmptyText = textParts.some(
-    (part) => 'text' in part && part.text === '',
-  );
   const textContent = textParts
     .map((part) => ('text' in part ? part.text : ''))
     .join('');
@@ -36,10 +41,18 @@ function Message({ message }: { message: UIMessage }) {
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
+  const hasEmptyText = textParts.some(
+    (part) => 'text' in part && part.text === '',
+  );
+  const showActivityIndicator =
+    isAssistant &&
+    isLastMessage &&
+    (status === 'submitted' || (status === 'streaming' && hasEmptyText));
+
   return (
     <div
       className={twMerge(
-        'flex max-w-[80%] flex-col transition-opacity duration-200',
+        'flex max-w-[80%] flex-col transition-opacity duration-200 no-app-drag',
         isUser && 'self-end',
         isAssistant && 'self-start',
       )}
@@ -49,9 +62,10 @@ function Message({ message }: { message: UIMessage }) {
           'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
+          !showActivityIndicator && 'select-text',
         )}
       >
-        {hasEmptyText ? (
+        {showActivityIndicator ? (
           <span className="inline-block animate-pulse text-white/60">●</span>
         ) : (
           textContent
@@ -122,11 +136,8 @@ export default function App() {
       },
     },
     onError: (error) => {
-      const errorMessage = error.message;
-      logger.error(
-        `useChat error: ${errorMessage} (${error.stack?.split('\n')[1].trim()})`,
-      );
-      setStreamingError(errorMessage);
+      logger.error(`useChat error: ${error.message}`);
+      setStreamingError(error.message);
     },
   });
 
@@ -165,18 +176,43 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  const messagesElements = useMemo(
-    () =>
-      messages
-        .filter((message) => message.role !== 'system')
-        .map((message) => <Message key={message.id} message={message} />),
-    [messages],
-  );
+  const messagesElements = useMemo(() => {
+    const visibleMessages = messages.filter(
+      (message) => message.role !== 'system',
+    );
+    const elements = visibleMessages.map((message, index) => (
+      <Message
+        key={message.id}
+        message={message}
+        isLastMessage={index === visibleMessages.length - 1}
+        status={status}
+      />
+    ));
+    if (
+      status === 'submitted' &&
+      visibleMessages.length > 0 &&
+      visibleMessages[visibleMessages.length - 1]?.role === 'user'
+    ) {
+      elements.push(
+        <Message
+          message={{
+            id: 'placeholder',
+            role: 'assistant',
+            parts: [{ type: 'text', text: '' }],
+          }}
+          isLastMessage={true}
+          status={status}
+        />,
+      );
+    }
+
+    return elements;
+  }, [messages, status]);
 
   return (
     <div className="flex h-full flex-col">
       <div className="shrink-0 border-b border-white/10 p-4">
-        <h1 className="text-xl font-semibold">{label}</h1>
+        <h1 className="w-fit text-xl font-semibold no-app-drag">{label}</h1>
         {systemPrompt.trim() !== '' && (
           <button
             type="button"
@@ -184,14 +220,17 @@ export default function App() {
               setShowSystemPrompt(!showSystemPrompt);
             }}
             className={twMerge(
-              'mt-1 block cursor-pointer text-left text-xs transition-colors',
+              'mt-1 block text-left text-xs transition-colors no-app-drag',
               !showSystemPrompt &&
-                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 italic hover:text-white/50',
+                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 hover:text-white/50',
               showSystemPrompt &&
                 'max-w-full whitespace-pre-wrap text-white/40 hover:text-white/60',
             )}
           >
-            {showSystemPrompt ? `▾ ${systemPrompt}` : `▸ ${systemPrompt}`}
+            {showSystemPrompt ? '▼ ' : '► '}
+            <span className={twMerge(!showSystemPrompt && 'italic')}>
+              {systemPrompt}
+            </span>
           </button>
         )}
       </div>
@@ -231,6 +270,7 @@ export default function App() {
       >
         <div className="flex gap-2">
           <textarea
+            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none no-app-drag focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
             ref={inputRef}
             value={input}
             onChange={(e) => {
@@ -246,11 +286,10 @@ export default function App() {
             placeholder="Type your message..."
             disabled={status === 'streaming' || status === 'submitted'}
             rows={input.split('\n').length}
-            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
           >
             {status === 'streaming' ? 'Stop' : 'Send'}
           </button>
