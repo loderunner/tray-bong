@@ -15,6 +15,15 @@ contextBridge.exposeInMainWorld('promptAPI', {
   getPromptInfo: (): Promise<{ label: string; systemPrompt: string }> => {
     return ipcRenderer.invoke('prompt:get-info');
   },
+  generateTitle: (
+    systemPrompt: string,
+    userMessage: string,
+  ): Promise<string> => {
+    return ipcRenderer.invoke('prompt:generate-title', {
+      systemPrompt,
+      userMessage,
+    });
+  },
   streamChat: (
     messages: UIMessage[],
     callbacks: {

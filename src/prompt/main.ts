@@ -5,7 +5,12 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModel } from 'ai';
 import type { UIMessage, UIMessageChunk } from 'ai';
-import { convertToModelMessages, smoothStream, streamText } from 'ai';
+import {
+  convertToModelMessages,
+  generateText,
+  smoothStream,
+  streamText,
+} from 'ai';
 import { BrowserWindow, ipcMain } from 'electron';
 import type { MessageEvent } from 'electron';
 import { createOllama } from 'ollama-ai-provider-v2';
@@ -52,6 +57,29 @@ async function getModel(): Promise<LanguageModel> {
       const provider = createOllama({ baseURL });
       return provider(settings.model);
     }
+  }
+}
+
+async function generateTitle(
+  systemPrompt: string,
+  userMessage: string,
+): Promise<string> {
+  const model = await getModel();
+  const titlePrompt = `Generate a concise 3-8 word title for this conversation.\nSystem context: ${systemPrompt}\nFirst user message: ${userMessage}\n\nRespond with ONLY the title, nothing else.`;
+
+  try {
+    const result = await generateText({
+      model,
+      prompt: titlePrompt,
+    });
+
+    const title = result.text.trim();
+    logger.debug(`Generated title: ${title}`);
+    return title;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Error generating title: ${errorMessage}`);
+    throw error;
   }
 }
 
@@ -142,6 +170,19 @@ export function setupPromptIPCHandlers(): void {
       systemPrompt: currentSystemPrompt,
     };
   });
+
+  ipcMain.handle(
+    'prompt:generate-title',
+    async (
+      _event,
+      {
+        systemPrompt,
+        userMessage,
+      }: { systemPrompt: string; userMessage: string },
+    ) => {
+      return await generateTitle(systemPrompt, userMessage);
+    },
+  );
 
   ipcMain.on(
     'prompt:stream-chat',

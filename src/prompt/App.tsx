@@ -1,11 +1,12 @@
 import { useChat } from '@ai-sdk/react';
 import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { twMerge } from 'tailwind-merge';
 
 type PromptAPI = {
   getPromptInfo: () => Promise<{ label: string; systemPrompt: string }>;
+  generateTitle: (systemPrompt: string, userMessage: string) => Promise<string>;
   streamChat: (
     messages: UIMessage[],
     callbacks: {
@@ -177,10 +178,10 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
+  const visibleMessages = useMemo(() => {
+    return messages.filter((message) => message.role !== 'system');
+  }, [messages]);
   const messagesElements = useMemo(() => {
-    const visibleMessages = messages.filter(
-      (message) => message.role !== 'system',
-    );
     const elements = visibleMessages.map((message, index) => (
       <Message
         key={message.id}
@@ -208,7 +209,38 @@ export default function App() {
     }
 
     return elements;
-  }, [messages, status]);
+  }, [visibleMessages, status]);
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (status === 'streaming') {
+        void stop();
+      } else if (input.trim() !== '') {
+        const userMessageText = input.trim();
+        const isFirstUserMessage = visibleMessages.length === 0;
+
+        void sendMessage({ text: userMessageText });
+        setInput('');
+        setStreamingError(null);
+
+        if (isFirstUserMessage && systemPrompt.trim() !== '') {
+          void promptAPI
+            .generateTitle(systemPrompt, userMessageText)
+            .then((title) => {
+              setLabel(title);
+              document.title = title;
+            })
+            .catch((error) => {
+              logger.error(
+                `Failed to generate title: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            });
+        }
+      }
+    },
+    [input, sendMessage, status, stop, systemPrompt, visibleMessages],
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -260,16 +292,7 @@ export default function App() {
       </div>
       <form
         className="shrink-0 border-t border-white/10 p-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (status === 'streaming') {
-            void stop();
-          } else if (input.trim() !== '') {
-            void sendMessage({ text: input.trim() });
-            setInput('');
-            setStreamingError(null);
-          }
-        }}
+        onSubmit={handleSubmit}
       >
         <div className="flex gap-2">
           <textarea
