@@ -222,9 +222,9 @@ export default function App() {
             className={twMerge(
               'mt-1 block text-left text-xs transition-colors no-app-drag',
               !showSystemPrompt &&
-                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 hover:text-white/50',
+                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-black/30 hover:text-black/50',
               showSystemPrompt &&
-                'max-w-full whitespace-pre-wrap text-white/40 hover:text-white/60',
+                'max-w-full whitespace-pre-wrap text-black/40 hover:text-black/60',
             )}
           >
             {showSystemPrompt ? '▼ ' : '► '}
@@ -235,15 +235,17 @@ export default function App() {
         )}
       </div>
       {streamingError !== null && (
-        <div className="shrink-0 border-b border-red-500/30 bg-red-500/10 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <div className="flex-1 text-sm text-red-300">{streamingError}</div>
+        <div className="shrink-0 border-b border-red-500/20 bg-red-500/20 px-4 py-3 no-app-drag">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 text-xs text-red-700 select-text">
+              {streamingError}
+            </div>
             <button
               type="button"
               onClick={() => {
                 setStreamingError(null);
               }}
-              className="shrink-0 cursor-pointer rounded px-2 py-1 text-xs text-red-300 transition-colors hover:bg-red-500/20"
+              className="shrink-0 rounded px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-500/20"
               aria-label="Dismiss error"
             >
               ✕
@@ -251,7 +253,7 @@ export default function App() {
           </div>
         </div>
       )}
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-white/20 p-4 no-app-drag">
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
@@ -289,6 +291,11 @@ export default function App() {
           />
           <button
             type="submit"
+            disabled={
+              status === 'streaming' ||
+              status === 'submitted' ||
+              input.trim() === ''
+            }
             className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
           >
             {status === 'streaming' ? 'Stop' : 'Send'}
