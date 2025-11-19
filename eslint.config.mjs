@@ -98,6 +98,17 @@ export default [
   },
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat['jsx-runtime'],
+  {
+    rules: {
+      'react/jsx-sort-props': [
+        'warn',
+        {
+          callbacksLast: true,
+          reservedFirst: true,
+        },
+      ],
+    },
+  },
   reactHooks.configs.flat.recommended,
   {
     files: ['**/*.test.ts'],

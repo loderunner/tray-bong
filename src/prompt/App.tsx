@@ -60,7 +60,7 @@ function Message({
     >
       <div
         className={twMerge(
-          'rounded-2xl px-4 py-3 leading-6 wrap-break-word markdown-content',
+          'markdown-content rounded-2xl px-4 py-3 leading-6 wrap-break-word',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
           !showActivityIndicator && 'select-text',
@@ -184,8 +184,8 @@ export default function App() {
     const elements = visibleMessages.map((message, index) => (
       <Message
         key={message.id}
-        message={message}
         isLastMessage={index === visibleMessages.length - 1}
+        message={message}
         status={status}
       />
     ));
@@ -196,12 +196,12 @@ export default function App() {
     ) {
       elements.push(
         <Message
+          isLastMessage
           message={{
             id: 'placeholder',
             role: 'assistant',
             parts: [{ type: 'text', text: '' }],
           }}
-          isLastMessage={true}
           status={status}
         />,
       );
@@ -216,10 +216,6 @@ export default function App() {
         <h1 className="w-fit text-xl font-semibold no-app-drag">{label}</h1>
         {systemPrompt.trim() !== '' && (
           <button
-            type="button"
-            onClick={() => {
-              setShowSystemPrompt(!showSystemPrompt);
-            }}
             className={twMerge(
               'mt-1 block text-left text-xs transition-colors no-app-drag',
               !showSystemPrompt &&
@@ -227,6 +223,10 @@ export default function App() {
               showSystemPrompt &&
                 'max-w-full whitespace-pre-wrap text-black/40 hover:text-black/60',
             )}
+            type="button"
+            onClick={() => {
+              setShowSystemPrompt(!showSystemPrompt);
+            }}
           >
             {showSystemPrompt ? '▼ ' : '► '}
             <span className={twMerge(!showSystemPrompt && 'italic')}>
@@ -242,12 +242,12 @@ export default function App() {
               {streamingError}
             </div>
             <button
+              aria-label="Dismiss error"
+              className="shrink-0 rounded px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-500/20"
               type="button"
               onClick={() => {
                 setStreamingError(null);
               }}
-              className="shrink-0 rounded px-2 py-1 text-xs text-red-700 transition-colors hover:bg-red-500/20"
-              aria-label="Dismiss error"
             >
               ✕
             </button>
@@ -259,6 +259,7 @@ export default function App() {
         <div ref={messagesEndRef} />
       </div>
       <form
+        className="shrink-0 border-t border-white/10 p-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (status === 'streaming') {
@@ -269,12 +270,14 @@ export default function App() {
             setStreamingError(null);
           }
         }}
-        className="shrink-0 border-t border-white/10 p-4"
       >
         <div className="flex gap-2">
           <textarea
-            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none no-app-drag focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
             ref={inputRef}
+            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none no-app-drag focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={status === 'streaming' || status === 'submitted'}
+            placeholder="Type your message..."
+            rows={input.split('\n').length}
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
@@ -286,18 +289,15 @@ export default function App() {
                 form?.requestSubmit();
               }
             }}
-            placeholder="Type your message..."
-            disabled={status === 'streaming' || status === 'submitted'}
-            rows={input.split('\n').length}
           />
           <button
-            type="submit"
+            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
             disabled={
               status === 'streaming' ||
               status === 'submitted' ||
               input.trim() === ''
             }
-            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+            type="submit"
           >
             {status === 'streaming' ? 'Stop' : 'Send'}
           </button>

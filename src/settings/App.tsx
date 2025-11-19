@@ -130,18 +130,18 @@ export default function App() {
       <div className="flex flex-1 flex-col gap-4">
         <div>
           <label
-            htmlFor="provider"
             className="mb-2 block text-sm font-medium text-gray-700"
+            htmlFor="provider"
           >
             Provider
           </label>
           <select
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             id="provider"
             value={provider}
             onChange={(e) => {
               setProvider(e.target.value as Provider);
             }}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
             <option value="openai">OpenAI</option>
             <option value="anthropic">Anthropic</option>
@@ -153,20 +153,20 @@ export default function App() {
         {isOllama ? (
           <div>
             <label
-              htmlFor="model"
               className="mb-2 block text-sm font-medium text-gray-700"
+              htmlFor="model"
             >
               Model
             </label>
             <input
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               id="model"
+              placeholder="e.g., llama3.2:1b"
               type="text"
               value={model}
               onChange={(e) => {
                 setModel(e.target.value);
               }}
-              placeholder="e.g., llama3.2:1b"
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
             <p className="mt-1 text-xs text-gray-500">
               Tip: Run{' '}
@@ -179,18 +179,18 @@ export default function App() {
         ) : (
           <div>
             <label
-              htmlFor="model"
               className="mb-2 block text-sm font-medium text-gray-700"
+              htmlFor="model"
             >
               Model
             </label>
             <select
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               id="model"
               value={model}
               onChange={(e) => {
                 setModel(e.target.value);
               }}
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             >
               {models.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -204,24 +204,24 @@ export default function App() {
         {needsApiKey && (
           <div>
             <label
-              htmlFor="apiKey"
               className="mb-2 block text-sm font-medium text-gray-700"
+              htmlFor="apiKey"
             >
               API Key
             </label>
             <input
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               id="apiKey"
+              placeholder="Enter API key"
               type="text"
               value={
                 apiKeyFocused || apiKeyEdited
                   ? apiKey
                   : maskApiKey(originalApiKey)
               }
-              onFocus={handleApiKeyFocus}
               onBlur={handleApiKeyBlur}
               onChange={handleApiKeyChange}
-              placeholder="Enter API key"
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              onFocus={handleApiKeyFocus}
             />
           </div>
         )}
@@ -229,34 +229,34 @@ export default function App() {
         {isOllama && (
           <div>
             <label
-              htmlFor="ollamaEndpoint"
               className="mb-2 block text-sm font-medium text-gray-700"
+              htmlFor="ollamaEndpoint"
             >
               Ollama Endpoint
             </label>
             <input
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
               id="ollamaEndpoint"
+              placeholder="http://localhost:11434"
               type="text"
               value={ollamaEndpoint}
               onChange={(e) => {
                 setOllamaEndpoint(e.target.value);
               }}
-              placeholder="http://localhost:11434"
-              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             />
           </div>
         )}
 
         <div className="mt-4 flex items-center justify-between">
           <button
-            onClick={handleOpenPromptsFile}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            onClick={handleOpenPromptsFile}
           >
             Reveal Prompts File
           </button>
           <button
-            onClick={handleSave}
             className="rounded-md bg-blue-500 px-6 py-2 text-base text-white shadow-sm transition-colors hover:bg-blue-600"
+            onClick={handleSave}
           >
             {saved ? 'Saved!' : 'Save'}
           </button>

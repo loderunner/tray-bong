@@ -6,7 +6,7 @@
   "main": ".vite/build/main.js",
   "scripts": {
     "lint": "prettier --check . && eslint --max-warnings=0 .",
-    "lint:fix": "prettier --write . && eslint --max-warnings=0 .",
+    "lint:fix": "prettier --write . && eslint --max-warnings=0 --fix .",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
