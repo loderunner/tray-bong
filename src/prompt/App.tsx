@@ -1,5 +1,5 @@
 import { useChat } from '@ai-sdk/react';
-import type { UIMessage, UIMessageChunk } from 'ai';
+import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -24,17 +24,30 @@ declare global {
   };
 }
 
-function Message({ message }: { message: UIMessage }) {
+function Message({
+  message,
+  isLastMessage,
+  status,
+}: {
+  message: UIMessage;
+  isLastMessage: boolean;
+  status: ChatStatus;
+}) {
   const textParts = message.parts.filter((part) => part.type === 'text');
-  const hasEmptyText = textParts.some(
-    (part) => 'text' in part && part.text === '',
-  );
   const textContent = textParts
     .map((part) => ('text' in part ? part.text : ''))
     .join('');
 
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
+
+  const hasEmptyText = textParts.some(
+    (part) => 'text' in part && part.text === '',
+  );
+  const showActivityIndicator =
+    isAssistant &&
+    isLastMessage &&
+    (status === 'submitted' || (status === 'streaming' && hasEmptyText));
 
   return (
     <div
@@ -51,7 +64,7 @@ function Message({ message }: { message: UIMessage }) {
           isAssistant && 'rounded-bl-sm bg-white/10',
         )}
       >
-        {hasEmptyText ? (
+        {showActivityIndicator ? (
           <span className="inline-block animate-pulse text-white/60">●</span>
         ) : (
           textContent
@@ -161,13 +174,38 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  const messagesElements = useMemo(
-    () =>
-      messages
-        .filter((message) => message.role !== 'system')
-        .map((message) => <Message key={message.id} message={message} />),
-    [messages],
-  );
+  const messagesElements = useMemo(() => {
+    const visibleMessages = messages.filter(
+      (message) => message.role !== 'system',
+    );
+    const elements = visibleMessages.map((message, index) => (
+      <Message
+        key={message.id}
+        message={message}
+        isLastMessage={index === visibleMessages.length - 1}
+        status={status}
+      />
+    ));
+    if (
+      status === 'submitted' &&
+      visibleMessages.length > 0 &&
+      visibleMessages[visibleMessages.length - 1]?.role === 'user'
+    ) {
+      elements.push(
+        <Message
+          message={{
+            id: 'placeholder',
+            role: 'assistant',
+            parts: [{ type: 'text', text: '' }],
+          }}
+          isLastMessage={true}
+          status={status}
+        />,
+      );
+    }
+
+    return elements;
+  }, [messages, status]);
 
   return (
     <div className="flex h-full flex-col">
@@ -182,12 +220,15 @@ export default function App() {
             className={twMerge(
               'mt-1 block cursor-pointer text-left text-xs transition-colors',
               !showSystemPrompt &&
-                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 italic hover:text-white/50',
+                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 hover:text-white/50',
               showSystemPrompt &&
                 'max-w-full whitespace-pre-wrap text-white/40 hover:text-white/60',
             )}
           >
-            {showSystemPrompt ? `▾ ${systemPrompt}` : `▸ ${systemPrompt}`}
+            {showSystemPrompt ? '▼ ' : '► '}
+            <span className={twMerge(!showSystemPrompt && 'italic')}>
+              {systemPrompt}
+            </span>
           </button>
         )}
       </div>
