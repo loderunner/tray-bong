@@ -1,5 +1,5 @@
 import { useChat } from '@ai-sdk/react';
-import type { UIMessage, UIMessageChunk } from 'ai';
+import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -31,12 +31,9 @@ function Message({
 }: {
   message: UIMessage;
   isLastMessage: boolean;
-  status: 'idle' | 'streaming' | 'submitted';
+  status: ChatStatus;
 }) {
   const textParts = message.parts.filter((part) => part.type === 'text');
-  const hasEmptyText = textParts.some(
-    (part) => 'text' in part && part.text === '',
-  );
   const textContent = textParts
     .map((part) => ('text' in part ? part.text : ''))
     .join('');
@@ -44,9 +41,13 @@ function Message({
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
 
+  const hasEmptyText = textParts.some(
+    (part) => 'text' in part && part.text === '',
+  );
   const showActivityIndicator =
-    hasEmptyText ||
-    (isAssistant && isLastMessage && status === 'submitted');
+    isAssistant &&
+    isLastMessage &&
+    (status === 'submitted' || (status === 'streaming' && hasEmptyText));
 
   return (
     <div
@@ -173,23 +174,38 @@ export default function App() {
     inputRef.current?.focus();
   }, []);
 
-  const visibleMessages = useMemo(
-    () => messages.filter((message) => message.role !== 'system'),
-    [messages],
-  );
-
-  const messagesElements = useMemo(
-    () =>
-      visibleMessages.map((message, index) => (
+  const messagesElements = useMemo(() => {
+    const visibleMessages = messages.filter(
+      (message) => message.role !== 'system',
+    );
+    const elements = visibleMessages.map((message, index) => (
+      <Message
+        key={message.id}
+        message={message}
+        isLastMessage={index === visibleMessages.length - 1}
+        status={status}
+      />
+    ));
+    if (
+      status === 'submitted' &&
+      visibleMessages.length > 0 &&
+      visibleMessages[visibleMessages.length - 1]?.role === 'user'
+    ) {
+      elements.push(
         <Message
-          key={message.id}
-          message={message}
-          isLastMessage={index === visibleMessages.length - 1}
+          message={{
+            id: 'placeholder',
+            role: 'assistant',
+            parts: [{ type: 'text', text: '' }],
+          }}
+          isLastMessage={true}
           status={status}
-        />
-      )),
-    [visibleMessages, status],
-  );
+        />,
+      );
+    }
+
+    return elements;
+  }, [messages, status]);
 
   return (
     <div className="flex h-full flex-col">
@@ -204,26 +220,20 @@ export default function App() {
             className={twMerge(
               'mt-1 block cursor-pointer text-left text-xs transition-colors',
               !showSystemPrompt &&
-                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 italic hover:text-white/50',
+                'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 hover:text-white/50',
               showSystemPrompt &&
                 'max-w-full whitespace-pre-wrap text-white/40 hover:text-white/60',
             )}
           >
-            {showSystemPrompt ? `▾ ${systemPrompt}` : `▸ ${systemPrompt}`}
+            {showSystemPrompt ? '▼ ' : '► '}
+            <span className={twMerge(!showSystemPrompt && 'italic')}>
+              {systemPrompt}
+            </span>
           </button>
         )}
       </div>
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
-        {status === 'submitted' &&
-          visibleMessages.length > 0 &&
-          visibleMessages[visibleMessages.length - 1]?.role === 'user' && (
-            <div className="flex max-w-[80%] flex-col self-start">
-              <div className="rounded-2xl rounded-bl-sm bg-white/10 px-4 py-3">
-                <span className="inline-block animate-pulse text-white/60">●</span>
-              </div>
-            </div>
-          )}
         <div ref={messagesEndRef} />
       </div>
       <form
