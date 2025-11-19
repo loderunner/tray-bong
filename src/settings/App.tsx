@@ -252,7 +252,7 @@ export default function App() {
             onClick={handleOpenPromptsFile}
             className="rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
-            Open Prompts File
+            Reveal Prompts File
           </button>
           <button
             onClick={handleSave}
