@@ -1,6 +1,7 @@
 import { useChat } from '@ai-sdk/react';
 import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { twMerge } from 'tailwind-merge';
 
 type PromptAPI = {
@@ -59,7 +60,7 @@ function Message({
     >
       <div
         className={twMerge(
-          'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
+          'rounded-2xl px-4 py-3 leading-6 wrap-break-word markdown-content',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
           !showActivityIndicator && 'select-text',
@@ -68,7 +69,7 @@ function Message({
         {showActivityIndicator ? (
           <span className="inline-block animate-pulse text-white/60">●</span>
         ) : (
-          textContent
+          <ReactMarkdown>{textContent}</ReactMarkdown>
         )}
       </div>
     </div>
