@@ -52,7 +52,7 @@ function Message({
   return (
     <div
       className={twMerge(
-        'flex max-w-[80%] flex-col transition-opacity duration-200',
+        'flex max-w-[80%] flex-col transition-opacity duration-200 no-app-drag',
         isUser && 'self-end',
         isAssistant && 'self-start',
       )}
@@ -62,6 +62,7 @@ function Message({
           'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
+          !showActivityIndicator && 'select-text',
         )}
       >
         {showActivityIndicator ? (
@@ -208,7 +209,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col">
       <div className="shrink-0 border-b border-white/10 p-4">
-        <h1 className="text-xl font-semibold">{label}</h1>
+        <h1 className="w-fit text-xl font-semibold no-app-drag">{label}</h1>
         {systemPrompt.trim() !== '' && (
           <button
             type="button"
@@ -216,7 +217,7 @@ export default function App() {
               setShowSystemPrompt(!showSystemPrompt);
             }}
             className={twMerge(
-              'mt-1 block cursor-pointer text-left text-xs transition-colors',
+              'mt-1 block text-left text-xs transition-colors no-app-drag',
               !showSystemPrompt &&
                 'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 hover:text-white/50',
               showSystemPrompt &&
@@ -230,7 +231,7 @@ export default function App() {
           </button>
         )}
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-white/20 p-4 no-app-drag">
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
@@ -248,6 +249,7 @@ export default function App() {
       >
         <div className="flex gap-2">
           <textarea
+            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none no-app-drag focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
             ref={inputRef}
             value={input}
             onChange={(e) => {
@@ -263,11 +265,10 @@ export default function App() {
             placeholder="Type your message..."
             disabled={status === 'streaming' || status === 'submitted'}
             rows={input.split('\n').length}
-            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
           >
             {status === 'streaming' ? 'Stop' : 'Send'}
           </button>
