@@ -39,7 +39,7 @@ function Message({ message }: { message: UIMessage }) {
   return (
     <div
       className={twMerge(
-        'flex max-w-[80%] flex-col transition-opacity duration-200',
+        'no-drag flex max-w-[80%] flex-col transition-opacity duration-200',
         isUser && 'self-end',
         isAssistant && 'self-start',
       )}
@@ -171,8 +171,8 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="no-drag shrink-0 border-b border-white/10 p-4">
-        <h1 className="text-xl font-semibold">{label}</h1>
+      <div className="shrink-0 border-b border-white/10 p-4">
+        <h1 className="no-drag w-fit text-xl font-semibold">{label}</h1>
         {systemPrompt.trim() !== '' && (
           <button
             type="button"
@@ -180,7 +180,7 @@ export default function App() {
               setShowSystemPrompt(!showSystemPrompt);
             }}
             className={twMerge(
-              'mt-1 block cursor-pointer text-left text-xs transition-colors',
+              'no-drag mt-1 block text-left text-xs transition-colors',
               !showSystemPrompt &&
                 'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-white/30 italic hover:text-white/50',
               showSystemPrompt &&
@@ -191,7 +191,7 @@ export default function App() {
           </button>
         )}
       </div>
-      <div className="no-drag flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
@@ -205,10 +205,11 @@ export default function App() {
             setInput('');
           }
         }}
-        className="no-drag shrink-0 border-t border-white/10 p-4"
+        className="shrink-0 border-t border-white/10 p-4"
       >
         <div className="flex gap-2">
           <textarea
+            className="no-drag max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
             ref={inputRef}
             value={input}
             onChange={(e) => {
@@ -224,11 +225,10 @@ export default function App() {
             placeholder="Type your message..."
             disabled={status === 'streaming' || status === 'submitted'}
             rows={input.split('\n').length}
-            className="max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border border-white/20 bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
           />
           <button
             type="submit"
-            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+            className="no-drag cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
           >
             {status === 'streaming' ? 'Stop' : 'Send'}
           </button>

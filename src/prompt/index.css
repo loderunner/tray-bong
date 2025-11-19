@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 
+* {
+  @apply select-none;
+}
+
 html,
 body {
   height: 100%;
