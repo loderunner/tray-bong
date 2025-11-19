@@ -1,5 +1,13 @@
 @import 'tailwindcss';
 
+@utility app-drag {
+  -webkit-app-region: drag;
+}
+
+@utility no-app-drag {
+  -webkit-app-region: no-drag;
+}
+
 *:not(.select-text, .select-all) {
   @apply select-none;
 }
@@ -10,16 +18,12 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  -webkit-app-region: drag;
+  @apply app-drag;
 }
 
 #root {
   height: 100%;
   display: flex;
   flex-direction: column;
-  -webkit-app-region: drag;
-}
-
-.no-drag {
-  -webkit-app-region: no-drag;
+  @apply app-drag;
 }
