@@ -62,6 +62,7 @@ function Message({
           'rounded-2xl px-4 py-3 leading-6 wrap-break-word whitespace-pre-wrap',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
+          !showActivityIndicator && 'select-text',
         )}
       >
         {showActivityIndicator ? (
