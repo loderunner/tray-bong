@@ -95,8 +95,8 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
   promptWindow = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 800,
+    height: 600,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
