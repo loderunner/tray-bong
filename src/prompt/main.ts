@@ -11,7 +11,7 @@ import {
   smoothStream,
   streamText,
 } from 'ai';
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 import type { MessageEvent } from 'electron';
 import { createOllama } from 'ollama-ai-provider-v2';
 
@@ -183,6 +183,24 @@ export function setupPromptIPCHandlers(): void {
       return await generateTitle(systemPrompt, userMessage);
     },
   );
+
+  ipcMain.handle('prompt:get-sf-symbol', (_event, symbolName: string) => {
+    try {
+      const image = nativeImage.createFromNamedImage(symbolName);
+      const png = image.toPNG();
+      const dataURL = `data:image/png;base64,${png.toString('base64')}`;
+      return dataURL;
+    } catch (error) {
+      logger.error(
+        `Failed to get SF Symbol ${symbolName}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return null;
+    }
+  });
+
+  ipcMain.handle('prompt:copy-to-clipboard', (_event, text: string) => {
+    clipboard.writeText(text);
+  });
 
   ipcMain.on(
     'prompt:stream-chat',

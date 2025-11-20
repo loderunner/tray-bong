@@ -90,4 +90,10 @@ contextBridge.exposeInMainWorld('promptAPI', {
       port1.close();
     };
   },
+  getSFSymbol: (symbolName: string): Promise<string | null> => {
+    return ipcRenderer.invoke('prompt:get-sf-symbol', symbolName);
+  },
+  copyToClipboard: (text: string): Promise<void> => {
+    return ipcRenderer.invoke('prompt:copy-to-clipboard', text);
+  },
 });

@@ -15,6 +15,8 @@ type PromptAPI = {
       onError: (error: string) => void;
     },
   ) => () => void;
+  getSFSymbol: (symbolName: string) => Promise<string | null>;
+  copyToClipboard: (text: string) => Promise<void>;
 };
 
 declare global {
@@ -51,6 +53,49 @@ function Message({
     isLastMessage &&
     (status === 'submitted' || (status === 'streaming' && hasEmptyText));
 
+  const [copyIcon, setCopyIcon] = useState<string | null>(null);
+  const [showCopiedPopover, setShowCopiedPopover] = useState<boolean>(false);
+
+  const isMessageComplete =
+    isAssistant &&
+    textContent.trim() !== '' &&
+    (!isLastMessage || (status !== 'submitted' && status !== 'streaming'));
+
+  useEffect(() => {
+    if (!isMessageComplete) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void promptAPI.getSFSymbol('square.on.square').then((icon) => {
+      if (!cancelled) {
+        setCopyIcon(icon);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      setCopyIcon(null);
+    };
+  }, [isMessageComplete]);
+
+  useEffect(() => {
+    if (showCopiedPopover) {
+      const timer = setTimeout(() => {
+        setShowCopiedPopover(false);
+      }, 2000);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [showCopiedPopover]);
+
+  const handleCopy = () => {
+    void promptAPI.copyToClipboard(textContent);
+    setShowCopiedPopover(true);
+  };
+
   return (
     <div
       className={twMerge(
@@ -61,7 +106,7 @@ function Message({
     >
       <div
         className={twMerge(
-          'markdown-content rounded-2xl px-4 py-3 leading-6 wrap-break-word',
+          'markdown-content relative rounded-2xl px-4 py-3 leading-6 wrap-break-word',
           isUser && 'rounded-br-sm bg-blue-500/20',
           isAssistant && 'rounded-bl-sm bg-white/10',
           !showActivityIndicator && 'select-text',
@@ -70,7 +115,30 @@ function Message({
         {showActivityIndicator ? (
           <span className="inline-block animate-pulse text-white/60">●</span>
         ) : (
-          <ReactMarkdown>{textContent}</ReactMarkdown>
+          <>
+            <ReactMarkdown>{textContent}</ReactMarkdown>
+            {isAssistant && copyIcon !== null && (
+              <div className="absolute right-2 -bottom-3">
+                <button
+                  aria-label="Copy message"
+                  className="relative flex h-6 w-6 items-center justify-center rounded border border-white/20 bg-white/10 transition-all duration-300 no-app-drag hover:bg-white/40 starting:opacity-0"
+                  type="button"
+                  onClick={handleCopy}
+                >
+                  <img
+                    alt="Copy"
+                    className="h-4 w-4 opacity-60"
+                    src={copyIcon}
+                  />
+                </button>
+                {showCopiedPopover && (
+                  <div className="absolute right-0 bottom-full mb-2 rounded bg-black/50 px-2 py-1 text-xs whitespace-nowrap text-white backdrop-blur-sm transition-all duration-300 ease-out starting:translate-y-1 starting:opacity-0">
+                    Copied!
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
