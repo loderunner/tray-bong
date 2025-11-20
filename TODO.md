@@ -1,7 +1,6 @@
 # Now
 
 - Save and restore past conversations - Recent conversations list in menu
-- Copy the contents of an assistant message with a little button in the corner
 - Regenerate an assistant message
 - Write each IPC like its own little backend service
 - Push state to Renderer processes on creation and store in a context
