@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { app } from 'electron';
 
+import { whatWorld } from '../what-world';
+
 const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
 type LogLevel = 'ERROR' | 'INFO' | 'DEBUG';
@@ -44,20 +46,22 @@ function toLocalISOString(date: Date): string {
 }
 
 /**
- * Formats a log message with timestamp, level, and context.
+ * Formats a log message with timestamp, level, world, and context.
  *
  * @param level - The log level (ERROR, INFO, DEBUG)
- * @param context - The process context (Main, Renderer)
+ * @param world - The world context (Main, Renderer, ContextBridge)
+ * @param context - The module context (e.g., 'AI', 'Settings')
  * @param message - The log message
  * @returns Formatted log line
  */
 function formatLogLine(
   level: string,
+  world: string,
   context: string,
   message: string,
 ): string {
   const timestamp = toLocalISOString(new Date());
-  return `${timestamp} [${level}][${context}] ${message}\n`;
+  return `${timestamp} [${level}][${world}][${context}] ${message}\n`;
 }
 
 /**
@@ -89,11 +93,13 @@ async function rotateLogIfNeeded(): Promise<void> {
  * Filters out messages below the minimum log level.
  *
  * @param level - The log level
- * @param context - The process context
+ * @param world - The world context (Main, Renderer, ContextBridge)
+ * @param context - The module context
  * @param message - The log message
  */
 export function writeLog(
   level: LogLevel,
+  world: string,
   context: string,
   message: string,
 ): void {
@@ -104,7 +110,7 @@ export function writeLog(
     return; // Skip logs below minimum level
   }
 
-  const logLine = formatLogLine(level, context, message);
+  const logLine = formatLogLine(level, world, context, message);
 
   if (logStream === null) {
     logBuffer.push(logLine);
@@ -166,20 +172,22 @@ export type Logger = {
 
 /**
  * Creates a logger instance with the specified context.
+ * Captures the world context at creation time.
  *
  * @param context - The context identifier for this logger (e.g., 'Main', 'AI', 'Settings')
  * @returns A logger instance with error, info, and debug methods
  */
 export function createLogger(context: string): Logger {
+  const world = whatWorld();
   return {
     error: (message: string) => {
-      writeLog('ERROR', context, message);
+      writeLog('ERROR', world, context, message);
     },
     info: (message: string) => {
-      writeLog('INFO', context, message);
+      writeLog('INFO', world, context, message);
     },
     debug: (message: string) => {
-      writeLog('DEBUG', context, message);
+      writeLog('DEBUG', world, context, message);
     },
   };
 }
