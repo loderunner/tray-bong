@@ -1,10 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 import { exposeAI } from '@/services/ai/renderer';
-import { exposeLogger } from '@/services/logger/renderer';
+import { exposeLoggerFactory } from '@/services/logger/renderer';
 
-// Expose logger to renderer
-exposeLogger('Prompt');
+// Expose logger factory to renderer
+exposeLoggerFactory();
 
 // Expose AI service
 exposeAI();

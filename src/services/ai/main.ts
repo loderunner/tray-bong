@@ -12,8 +12,10 @@ import {
 } from 'ai';
 import { createOllama } from 'ollama-ai-provider-v2';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
 import { loadSettings } from '@/services/settings/main';
+
+const logger = createLogger('AI');
 
 /**
  * Gets the configured language model based on settings.

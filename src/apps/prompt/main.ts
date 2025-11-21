@@ -2,8 +2,10 @@ import path from 'node:path';
 
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
 import type { SystemPrompt } from '@/services/prompts/main';
+
+const logger = createLogger('PromptWindow');
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;

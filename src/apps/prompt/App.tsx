@@ -6,6 +6,8 @@ import { twMerge } from 'tailwind-merge';
 
 import { Message } from './Message';
 
+const logger = createLogger('Prompt:App');
+
 export default function App() {
   const [label, setLabel] = useState<string>('');
   const [systemPrompt, setSystemPrompt] = useState<string>('');

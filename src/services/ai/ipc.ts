@@ -3,7 +3,9 @@ import { type MessageEvent, ipcMain } from 'electron';
 
 import { generateTextFromPrompt, streamChat } from './main';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
+
+const logger = createLogger('AI:IPC');
 
 export type StreamChatMessageData =
   | { chunk: UIMessageChunk }

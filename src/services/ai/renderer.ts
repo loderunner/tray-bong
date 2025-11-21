@@ -3,7 +3,9 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type { StreamChatMessageData } from './ipc';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/renderer';
+
+const logger = createLogger('AI:Renderer');
 
 /**
  * Exposes AI API to the renderer process via context bridge.

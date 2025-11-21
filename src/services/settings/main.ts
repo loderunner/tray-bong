@@ -4,7 +4,9 @@ import path from 'node:path';
 import { app, safeStorage } from 'electron';
 import { z } from 'zod';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
+
+const logger = createLogger('Settings');
 
 const CURRENT_VERSION = 1;
 

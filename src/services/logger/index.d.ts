@@ -1,9 +1,7 @@
+import type { Logger } from './renderer';
+
 declare global {
-  var logger: {
-    error: (message: string) => void;
-    info: (message: string) => void;
-    debug: (message: string) => void;
-  };
+  var createLogger: (context: string) => Logger;
 }
 
 export {};
