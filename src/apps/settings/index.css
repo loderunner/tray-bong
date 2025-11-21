@@ -1,4 +1,4 @@
 @import 'tailwindcss';
-*:not(.select-text, .select-all) {
+*:not(.select-text, .select-all):not(.select-text *):not(.select-all *) {
   @apply select-none;
 }
