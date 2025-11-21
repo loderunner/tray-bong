@@ -21,6 +21,7 @@
 - prompt building interface
 - Memorize settings for each provider
 - Move settings file to the user data directory with prompts
+- Tests, CI, dependabot, and all that jazz
 
 # Prompt
 
