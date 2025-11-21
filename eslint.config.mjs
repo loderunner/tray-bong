@@ -22,13 +22,19 @@ export default [
     languageOptions: {
       parserOptions: {
         projectService: {
-          // allowDefaultProject: ['*.{config,setup}.{js,mjs,cjs,ts}'],
+          allowDefaultProject: [
+            '*.{config,setup}.{js,mjs,cjs,ts}',
+            'src/apps/prompt/prettier.config.mjs',
+            'src/apps/settings/prettier.config.mjs',
+          ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 16,
         },
       },
     },
   },
   {
     rules: {
+      'no-duplicate-imports': 'error',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -67,6 +73,13 @@ export default [
       '@typescript-eslint/no-misused-promises': [
         'error',
         { checksVoidReturn: false },
+      ],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        {
+          prefer: 'type-imports',
+          fixStyle: 'inline-type-imports',
+        },
       ],
     },
   },

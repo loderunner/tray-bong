@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { app } from 'electron';
+import { app, shell } from 'electron';
 import { z } from 'zod';
 
 const CURRENT_VERSION = 1;
@@ -10,13 +10,12 @@ const SystemPromptSchema = z.object({
   label: z.string(),
   prompt: z.string(),
 });
+export type SystemPrompt = z.infer<typeof SystemPromptSchema>;
 
 const PromptsFileSchema = z.object({
   version: z.number(),
   prompts: z.array(SystemPromptSchema),
 });
-
-export type SystemPrompt = z.infer<typeof SystemPromptSchema>;
 type PromptsFile = z.infer<typeof PromptsFileSchema>;
 
 export function getPromptsFilePath(): string {
@@ -52,29 +51,16 @@ function migratePrompts(data: unknown): PromptsFile {
   const version =
     'version' in data && typeof data.version === 'number' ? data.version : 0;
 
-  if (version === CURRENT_VERSION) {
-    return PromptsFileSchema.parse(data);
+  if (version > CURRENT_VERSION) {
+    throw new Error(`Unsupported prompts file version: ${version}`);
   }
 
   if (version < CURRENT_VERSION) {
     // Future migrations would go here
-    // For now, if version is less than current, try to parse as current version
-    return PromptsFileSchema.parse(data);
+    // For now, if version is less than current, do nothing
   }
 
-  throw new Error(`Unsupported prompts file version: ${version}`);
-}
-
-export async function initializePromptsFile(): Promise<void> {
-  const filePath = getPromptsFilePath();
-  try {
-    await fs.access(filePath);
-  } catch {
-    // File doesn't exist, create it
-    const defaultPrompts = getDefaultPrompts();
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
-  }
+  return PromptsFileSchema.parse(data);
 }
 
 export async function loadPrompts(): Promise<SystemPrompt[]> {
@@ -92,4 +78,9 @@ export async function loadPrompts(): Promise<SystemPrompt[]> {
     await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
     return defaultPrompts.prompts;
   }
+}
+
+export function revealPromptsFile(): void {
+  const filePath = getPromptsFilePath();
+  void shell.showItemInFolder(filePath);
 }

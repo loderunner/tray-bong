@@ -1,26 +1,8 @@
-import type { ChatStatus, UIMessage, UIMessageChunk } from 'ai';
-import React, { useEffect, useState } from 'react';
+/// <reference types="./index.d.ts" />
+import type { ChatStatus, UIMessage } from 'ai';
+import { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { twMerge } from 'tailwind-merge';
-
-type PromptAPI = {
-  getPromptInfo: () => Promise<{ label: string; systemPrompt: string }>;
-  generateTitle: (systemPrompt: string, userMessage: string) => Promise<string>;
-  streamChat: (
-    messages: UIMessage[],
-    callbacks: {
-      onChunk: (chunk: UIMessageChunk) => void;
-      onDone: () => void;
-      onError: (error: string) => void;
-    },
-  ) => () => void;
-  getSFSymbol: (symbolName: string) => Promise<string | null>;
-  copyToClipboard: (text: string) => Promise<void>;
-};
-
-declare global {
-  var promptAPI: PromptAPI;
-}
 
 interface Props extends React.RefAttributes<HTMLDivElement> {
   message: UIMessage;
@@ -69,13 +51,13 @@ export function Message({
     let cancelled = false;
 
     if (message.role === 'assistant') {
-      void promptAPI.getSFSymbol('square.on.square').then((icon) => {
+      void PromptWindow.getSFSymbol('square.on.square').then((icon) => {
         if (!cancelled) {
           setCopyIcon(icon);
         }
       });
     } else if (message.role === 'user') {
-      void promptAPI.getSFSymbol('square.and.pencil').then((icon) => {
+      void PromptWindow.getSFSymbol('square.and.pencil').then((icon) => {
         if (!cancelled) {
           setEditIcon(icon);
         }
@@ -101,13 +83,13 @@ export function Message({
   }, [showCopiedPopover]);
 
   const handleCopy = () => {
-    void promptAPI.copyToClipboard(textContent);
+    void PromptWindow.copyToClipboard(textContent);
     setShowCopiedPopover(true);
   };
 
-  const handleEdit = () => {
+  const handleEdit = useCallback(() => {
     onEdit(message.id, textContent);
-  };
+  }, [message.id, onEdit, textContent]);
 
   return (
     <div

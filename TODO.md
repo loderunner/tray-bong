@@ -1,17 +1,16 @@
 # Now
 
+- Fix Ollama pull tip text
+- Fix global type declarations problems (globals are only for react code,
+  exposed over the context bridge)
+- Don't make a default logger, make each module create its own logger, with
+  context
 - Save and restore past conversations - Recent conversations list in menu
 - Don't destroy latest conversation, and bring it back up by default (unless a
   new prompt is selected)
-- Move message component to a separate file
-- Fix issue that I can't move the window by grabbing the background of a window,
-  if there's scrolled content underneath where I'm clicking (+drag when click on
-  title)
-- Write each IPC like its own little backend service
-- Push state to Renderer processes on creation and store in a context
-- Expose refresh and mutation functions to Renderer processes through the
-  context, based on useSWR, with a custom fetcher that uses the ipcRenderer to
-  send messages to the main process
+- Fix issue that I can't move the window by grabbing the background of a div, if
+  there's scrolled content underneath where I'm clicking (+drag when click on
+  title). For example, scroll the messages up to below the title bar.
 
 # Later
 
@@ -20,6 +19,8 @@
 - configure prompts to accept variables, and settings like reasoning budget,
   temperature, topK, etc.
 - prompt building interface
+- Memorize settings for each provider
+- Move settings file to the user data directory with prompts
 
 # Prompt
 

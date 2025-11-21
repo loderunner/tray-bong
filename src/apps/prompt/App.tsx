@@ -1,39 +1,10 @@
+/// <reference types="./index.d.ts" />
 import { useChat } from '@ai-sdk/react';
-import type { UIMessage, UIMessageChunk } from 'ai';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import type { UIMessageChunk } from 'ai';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { Message } from './Message';
-
-type PromptAPI = {
-  getPromptInfo: () => Promise<{ label: string; systemPrompt: string }>;
-  generateTitle: (systemPrompt: string, userMessage: string) => Promise<string>;
-  streamChat: (
-    messages: UIMessage[],
-    callbacks: {
-      onChunk: (chunk: UIMessageChunk) => void;
-      onDone: () => void;
-      onError: (error: string) => void;
-    },
-  ) => () => void;
-  getSFSymbol: (symbolName: string) => Promise<string | null>;
-  copyToClipboard: (text: string) => Promise<void>;
-};
-
-declare global {
-  var promptAPI: PromptAPI;
-  var logger: {
-    info: (message: string) => void;
-    debug: (message: string) => void;
-    error: (message: string) => void;
-  };
-}
 
 export default function App() {
   const [label, setLabel] = useState<string>('');
@@ -61,7 +32,8 @@ export default function App() {
               }
 
               logger.debug('ReadableStream started');
-              const abortStream = promptAPI.streamChat(uiMessages, {
+              const abortStream = AI.streamChat({
+                messages: uiMessages,
                 onChunk: (chunk) => {
                   logger.debug(
                     `onChunk: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
@@ -111,7 +83,7 @@ export default function App() {
   useEffect(() => {
     async function init(): Promise<void> {
       const { label: promptLabel, systemPrompt: systemPromptText } =
-        await promptAPI.getPromptInfo();
+        await PromptWindow.getPromptInfo();
       setLabel(promptLabel);
       setSystemPrompt(systemPromptText);
       document.title = promptLabel;
@@ -277,8 +249,8 @@ export default function App() {
           setStreamingError(null);
 
           if (isFirstUserMessage && systemPrompt.trim() !== '') {
-            void promptAPI
-              .generateTitle(systemPrompt, userMessageText)
+            const titlePrompt = `Generate a concise 3-8 word title for this conversation.\nSystem context: ${systemPrompt}\nFirst user message: ${userMessageText}\n\nRespond with ONLY the title, nothing else.`;
+            void AI.generateText(titlePrompt)
               .then((title) => {
                 setLabel(title);
                 document.title = title;

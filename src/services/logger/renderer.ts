@@ -1,17 +1,12 @@
-import { ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
 /**
- * Creates logger functions for a specific renderer process.
+ * Exposes logger API to the renderer process via context bridge.
  *
  * @param rendererName - The name of the renderer process (e.g., 'Prompt', 'Settings')
- * @returns Logger object with error, info, and debug methods
  */
-export function createLogger(rendererName: string): {
-  error: (message: string) => void;
-  info: (message: string) => void;
-  debug: (message: string) => void;
-} {
-  return {
+export function exposeLogger(rendererName: string): void {
+  contextBridge.exposeInMainWorld('logger', {
     error: (message: string) => {
       void ipcRenderer.invoke('log:error', rendererName, message);
     },
@@ -21,5 +16,5 @@ export function createLogger(rendererName: string): {
     debug: (message: string) => {
       void ipcRenderer.invoke('log:debug', rendererName, message);
     },
-  };
+  });
 }

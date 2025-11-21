@@ -1,20 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import type { ModelInfo, Provider, ProviderSettings } from '@/settings-data';
-
-type SettingsAPI = {
-  openPromptsFile: () => Promise<void>;
-  getSettings: () => Promise<ProviderSettings>;
-  saveSettings: (settings: ProviderSettings) => Promise<void>;
-  getModels: (provider: Provider) => Promise<ModelInfo[]>;
-};
-
-declare global {
-  var settingsAPI: SettingsAPI;
-}
+import type { ModelInfo, Provider } from '@/services/settings/main';
 
 function handleOpenPromptsFile(): void {
-  void settingsAPI.openPromptsFile();
+  void Prompts.revealPromptsFile();
 }
 
 function maskApiKey(key: string): string {
@@ -41,15 +30,17 @@ export default function App() {
 
   useEffect(() => {
     async function load(): Promise<void> {
-      const settings = await settingsAPI.getSettings();
-      setProvider(settings.provider);
-      setModel(settings.model);
-      setApiKey(settings.apiKey);
-      setOriginalApiKey(settings.apiKey);
+      const loadedSettings = await Settings.getSettings();
+      setProvider(loadedSettings.provider);
+      setModel(loadedSettings.model);
+      setApiKey(loadedSettings.apiKey);
+      setOriginalApiKey(loadedSettings.apiKey);
       setApiKeyEdited(false);
       setApiKeyFocused(false);
-      setOllamaEndpoint(settings.ollamaEndpoint ?? 'http://localhost:11434');
-      const providerModels = await settingsAPI.getModels(settings.provider);
+      setOllamaEndpoint(
+        loadedSettings.ollamaEndpoint ?? 'http://localhost:11434',
+      );
+      const providerModels = Settings.PROVIDER_MODELS[loadedSettings.provider];
       setModels(providerModels);
     }
 
@@ -57,8 +48,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function updateModels(): Promise<void> {
-      const providerModels = await settingsAPI.getModels(provider);
+    function updateModels(): void {
+      const providerModels = Settings.PROVIDER_MODELS[provider];
       setModels(providerModels);
       // Default to first model when switching provider
       if (providerModels.length > 0) {
@@ -69,13 +60,13 @@ export default function App() {
       }
     }
 
-    void updateModels();
+    updateModels();
   }, [provider]);
 
   async function handleSave(): Promise<void> {
     // Use the edited API key if user was editing, otherwise keep original
     const keyToSave = apiKeyEdited ? apiKey : originalApiKey;
-    await settingsAPI.saveSettings({
+    await Settings.saveSettings({
       provider,
       model,
       apiKey: keyToSave,

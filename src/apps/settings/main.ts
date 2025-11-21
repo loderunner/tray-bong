@@ -1,16 +1,8 @@
 import path from 'node:path';
 
-import { BrowserWindow, ipcMain, shell } from 'electron';
+import { BrowserWindow } from 'electron';
 
-import * as logger from '@/logger/main';
-import { getPromptsFilePath } from '@/prompts';
-import {
-  type Provider,
-  type ProviderSettings,
-  getModels,
-  loadSettings,
-  saveSettings,
-} from '@/settings-data';
+import * as logger from '@/services/logger/main';
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
 declare const SETTINGS_VITE_NAME: string | undefined;
@@ -67,38 +59,18 @@ export function createSettingsWindow(): void {
     const htmlPath = path.join(
       __dirname,
       '..',
+      '..',
       'renderer',
       SETTINGS_VITE_NAME!,
       'settings.html',
     );
 
     logger.info(`Loading settings from file: ${htmlPath}`);
+
     void settingsWindow.loadFile(htmlPath);
   }
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
-  });
-}
-
-export function setupSettingsIPCHandlers(): void {
-  ipcMain.handle('settings:open-prompts-file', () => {
-    const filePath = getPromptsFilePath();
-    void shell.showItemInFolder(filePath);
-  });
-
-  ipcMain.handle('settings:get', async () => {
-    return await loadSettings();
-  });
-
-  ipcMain.handle(
-    'settings:save',
-    async (_event, settings: ProviderSettings) => {
-      await saveSettings(settings);
-    },
-  );
-
-  ipcMain.handle('settings:get-models', (_event, provider: Provider) => {
-    return getModels(provider);
   });
 }

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { app, safeStorage } from 'electron';
 import { z } from 'zod';
 
-import * as logger from '@/logger/main';
+import * as logger from '@/services/logger/main';
 
 const CURRENT_VERSION = 1;
 
@@ -44,6 +44,7 @@ const SettingsFileSchema = z.object({
   apiKey: z.string(), // encrypted
   ollamaEndpoint: z.string().optional(),
 });
+type SettingsFile = z.infer<typeof SettingsFileSchema>;
 
 export type ProviderSettings = {
   provider: Provider;
@@ -51,7 +52,6 @@ export type ProviderSettings = {
   apiKey: string;
   ollamaEndpoint?: string;
 };
-type SettingsFile = z.infer<typeof SettingsFileSchema>;
 
 export function getSettingsFilePath(): string {
   return path.join(app.getPath('userData'), 'settings.json');
@@ -98,28 +98,16 @@ function migrateSettings(data: unknown): SettingsFile {
   const version =
     'version' in data && typeof data.version === 'number' ? data.version : 0;
 
-  if (version === CURRENT_VERSION) {
-    return SettingsFileSchema.parse(data);
+  if (version > CURRENT_VERSION) {
+    throw new Error(`Unsupported settings file version: ${version}`);
   }
 
   if (version < CURRENT_VERSION) {
     // Future migrations would go here
-    // For now, if version is less than current, try to parse as current version
-    return SettingsFileSchema.parse(data);
+    // For now, if version is less than current, do nothing
   }
 
-  throw new Error(`Unsupported settings file version: ${version}`);
-}
-
-export async function initializeSettingsFile(): Promise<void> {
-  const filePath = getSettingsFilePath();
-  try {
-    await fs.access(filePath);
-  } catch {
-    // File doesn't exist, create it
-    const defaultSettings = getDefaultSettings();
-    await fs.writeFile(filePath, JSON.stringify(defaultSettings, null, 2));
-  }
+  return SettingsFileSchema.parse(data);
 }
 
 export async function loadSettings(): Promise<ProviderSettings> {
@@ -162,8 +150,4 @@ export async function saveSettings(settings: ProviderSettings): Promise<void> {
     ollamaEndpoint: settings.ollamaEndpoint,
   };
   await fs.writeFile(filePath, JSON.stringify(settingsFile, null, 2));
-}
-
-export function getModels(provider: Provider): ModelInfo[] {
-  return PROVIDER_MODELS[provider];
 }

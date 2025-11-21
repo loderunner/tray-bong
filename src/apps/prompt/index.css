@@ -10,7 +10,7 @@
   -webkit-app-region: no-drag;
 }
 
-*:not(.select-text, .select-all) {
+*:not(.select-text, .select-all):not(.select-text *):not(.select-all *) {
   @apply select-none;
 }
 
