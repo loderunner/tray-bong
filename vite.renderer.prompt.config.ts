@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -16,5 +17,13 @@ export default defineConfig({
       input: 'prompt.html',
     },
     sourcemap: true,
+  },
+  esbuild: {
+    tsconfigRaw: JSON.parse(
+      readFileSync(
+        path.resolve(__dirname, './tsconfig.renderer.json'),
+        'utf-8',
+      ),
+    ) as Record<string, unknown>,
   },
 });

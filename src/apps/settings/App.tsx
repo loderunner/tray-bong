@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 import type { ModelInfo, Provider } from '@/services/settings/main';
 
@@ -159,12 +160,17 @@ export default function App() {
                 setModel(e.target.value);
               }}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p
+              className={twMerge(
+                'mt-1 text-xs text-gray-500',
+                model.trim() === '' && 'hidden',
+              )}
+            >
               Tip: Run{' '}
-              <code className="rounded bg-gray-100 px-1">
-                ollama pull llama3.2:1b
+              <code className="rounded bg-gray-100 px-1 select-text">
+                ollama pull {model.trim()}
               </code>{' '}
-              in a shell to download models
+              in a shell to download the model
             </p>
           </div>
         ) : (

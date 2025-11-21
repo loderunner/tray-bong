@@ -1,9 +1,5 @@
-declare global {
-  var logger: {
-    error: (message: string) => void;
-    info: (message: string) => void;
-    debug: (message: string) => void;
-  };
-}
-
-export {};
+/**
+ * Type definitions for the logger service.
+ * Global declarations for renderer are in src/renderer-globals.d.ts
+ */
+export type {};

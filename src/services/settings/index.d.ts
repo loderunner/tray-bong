@@ -1,11 +1,5 @@
-import type { ModelInfo, Provider, ProviderSettings } from './main';
-
-declare global {
-  var Settings: {
-    getSettings: () => Promise<ProviderSettings>;
-    saveSettings: (settings: ProviderSettings) => Promise<void>;
-    PROVIDER_MODELS: Record<Provider, ModelInfo[]>;
-  };
-}
-
-export {};
+/**
+ * Type definitions for the settings service.
+ * Global declarations for renderer are in src/renderer-globals.d.ts
+ */
+export type {};

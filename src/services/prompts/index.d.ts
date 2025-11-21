@@ -1,10 +1,5 @@
-import type { SystemPrompt } from './main';
-
-declare global {
-  var Prompts: {
-    listPrompts: () => Promise<SystemPrompt[]>;
-    revealPromptsFile: () => Promise<void>;
-  };
-}
-
-export {};
+/**
+ * Type definitions for the prompts service.
+ * Global declarations for renderer are in src/renderer-globals.d.ts
+ */
+export type {};
