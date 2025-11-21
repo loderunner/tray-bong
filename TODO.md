@@ -1,6 +1,5 @@
 # Now
 
-- Fix Ollama pull tip text
 - Fix global type declarations problems (globals are only for react code,
   exposed over the context bridge)
 - Don't make a default logger, make each module create its own logger, with
@@ -22,20 +21,5 @@
 - Memorize settings for each provider
 - Move settings file to the user data directory with prompts
 - Tests, CI, dependabot, and all that jazz
-
-# Prompt
-
-I want to be able to persist and restore conversations.
-
-Here's what I have in mind:
-
-- Each time a message finishes (user or assistant), we store the entire
-  conversation to a file in the user data directory (JSON format, file path is
-  `<user-data>/conversations/<uuid>.json`)
-- Use uuidv7 with conversation creation timestamp so the files are
-  chronologically sorted in the directory listing
-- We add a "Recent conversations" submenu to the tray menu that lists the 5 most
-  recent conversations. The last item of the submenu is "Show more..." which
-  extends the menu with the 5 next conversations.
-- Clicking on a conversation name in the submenu opens a new prompt window with
-  the conversation loaded.
+- Validate settings on save: test model is valid for the provider, test api key
+  is valid for the provider, test ollama endpoint is valid, etc.
