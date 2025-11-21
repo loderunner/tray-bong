@@ -1,20 +1,55 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 /**
- * Exposes logger API to the renderer process via context bridge.
- *
- * @param rendererName - The name of the renderer process (e.g., 'Prompt', 'Settings')
+ * Logger instance with context-specific logging methods.
  */
-export function exposeLogger(rendererName: string): void {
-  contextBridge.exposeInMainWorld('logger', {
+export type Logger = {
+  /**
+   * Logs an error message.
+   *
+   * @param message - The error message to log
+   */
+  error: (message: string) => void;
+  /**
+   * Logs an info message.
+   *
+   * @param message - The info message to log
+   */
+  info: (message: string) => void;
+  /**
+   * Logs a debug message.
+   *
+   * @param message - The debug message to log
+   */
+  debug: (message: string) => void;
+};
+
+/**
+ * Creates a logger instance with the specified context.
+ *
+ * @param context - The context identifier for this logger (e.g., 'Prompt', 'Settings', 'AI')
+ * @returns A logger instance with error, info, and debug methods
+ */
+export function createLogger(context: string): Logger {
+  return {
     error: (message: string) => {
-      void ipcRenderer.invoke('log:error', rendererName, message);
+      void ipcRenderer.invoke('log:error', context, message);
     },
     info: (message: string) => {
-      void ipcRenderer.invoke('log:info', rendererName, message);
+      void ipcRenderer.invoke('log:info', context, message);
     },
     debug: (message: string) => {
-      void ipcRenderer.invoke('log:debug', rendererName, message);
+      void ipcRenderer.invoke('log:debug', context, message);
     },
+  };
+}
+
+/**
+ * Exposes logger factory to the renderer process via context bridge.
+ * Modules should use this to create their own logger instances.
+ */
+export function exposeLoggerFactory(): void {
+  contextBridge.exposeInMainWorld('createLogger', (context: string): Logger => {
+    return createLogger(context);
   });
 }

@@ -141,28 +141,45 @@ export async function init(): Promise<void> {
 }
 
 /**
- * Logs an error message.
- *
- * @param message - The error message to log
+ * Logger instance with context-specific logging methods.
  */
-export function error(message: string): void {
-  writeLog('ERROR', 'Main', message);
-}
+export type Logger = {
+  /**
+   * Logs an error message.
+   *
+   * @param message - The error message to log
+   */
+  error: (message: string) => void;
+  /**
+   * Logs an info message.
+   *
+   * @param message - The info message to log
+   */
+  info: (message: string) => void;
+  /**
+   * Logs a debug message.
+   *
+   * @param message - The debug message to log
+   */
+  debug: (message: string) => void;
+};
 
 /**
- * Logs an info message.
+ * Creates a logger instance with the specified context.
  *
- * @param message - The info message to log
+ * @param context - The context identifier for this logger (e.g., 'Main', 'AI', 'Settings')
+ * @returns A logger instance with error, info, and debug methods
  */
-export function info(message: string): void {
-  writeLog('INFO', 'Main', message);
-}
-
-/**
- * Logs a debug message.
- *
- * @param message - The debug message to log
- */
-export function debug(message: string): void {
-  writeLog('DEBUG', 'Main', message);
+export function createLogger(context: string): Logger {
+  return {
+    error: (message: string) => {
+      writeLog('ERROR', context, message);
+    },
+    info: (message: string) => {
+      writeLog('INFO', context, message);
+    },
+    debug: (message: string) => {
+      writeLog('DEBUG', context, message);
+    },
+  };
 }
