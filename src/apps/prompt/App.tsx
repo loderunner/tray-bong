@@ -1,4 +1,3 @@
-/// <reference types="./index.d.ts" />
 import { useChat } from '@ai-sdk/react';
 import type { UIMessageChunk } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

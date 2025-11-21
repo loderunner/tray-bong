@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { defineConfig } from 'vite';
@@ -15,5 +16,10 @@ export default defineConfig({
         entryFileNames: 'prompt-preload.js',
       },
     },
+  },
+  esbuild: {
+    tsconfigRaw: JSON.parse(
+      readFileSync(path.resolve(__dirname, './tsconfig.preload.json'), 'utf-8'),
+    ) as Record<string, unknown>,
   },
 });

@@ -1,7 +1,6 @@
 # Now
 
-- Fix global type declarations problems (globals are only for react code,
-  exposed over the context bridge)
+
 - Don't make a default logger, make each module create its own logger, with
   context
 - Save and restore past conversations - Recent conversations list in menu

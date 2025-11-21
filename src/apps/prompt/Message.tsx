@@ -1,4 +1,3 @@
-/// <reference types="./index.d.ts" />
 import type { ChatStatus, UIMessage } from 'ai';
 import { useCallback, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
