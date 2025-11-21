@@ -1,5 +1,6 @@
 # Now
 
+
 - Don't make a default logger, make each module create its own logger, with
   context
 - Save and restore past conversations - Recent conversations list in menu
