@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 
-import { loadPrompts, revealPromptsFile } from './main';
+import { loadPrompts } from './main';
 
 /**
  * Sets up IPC handlers for prompts service.
@@ -9,9 +9,5 @@ import { loadPrompts, revealPromptsFile } from './main';
 export function setupPromptsIPC(): void {
   ipcMain.handle('prompts:list', async () => {
     return await loadPrompts();
-  });
-
-  ipcMain.handle('prompts:reveal-file', () => {
-    revealPromptsFile();
   });
 }

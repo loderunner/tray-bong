@@ -6,9 +6,6 @@ declare global {
     getSFSymbol: (symbolName: string) => Promise<string | null>;
     copyToClipboard: (text: string) => Promise<void>;
   };
-  var Conversations: {
-    saveConversation: (conversation: Conversation) => Promise<void>;
-  };
 }
 
 export {};

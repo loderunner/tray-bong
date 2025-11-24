@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 
-import { type Conversation, saveConversation } from './main';
+import { type Conversation, listConversations, saveConversation } from './main';
 
 /**
  * Sets up IPC handlers for conversations service.
@@ -11,6 +11,13 @@ export function setupConversationsIPC(): void {
     'conversations:save',
     async (_event, conversation: Conversation) => {
       await saveConversation(conversation);
+    },
+  );
+
+  ipcMain.handle(
+    'conversations:list',
+    async (_event, limit: number, offset: number) => {
+      return await listConversations(limit, offset);
     },
   );
 }

@@ -26,6 +26,7 @@ export default [
             '*.{config,setup}.{js,mjs,cjs,ts}',
             'src/apps/prompt/prettier.config.mjs',
             'src/apps/settings/prettier.config.mjs',
+            'src/apps/conversations/prettier.config.mjs',
           ],
           maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 16,
         },

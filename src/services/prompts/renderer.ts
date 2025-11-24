@@ -10,8 +10,5 @@ export function exposePrompts(): void {
     listPrompts: (): Promise<SystemPrompt[]> => {
       return ipcRenderer.invoke('prompts:list');
     },
-    revealPromptsFile: (): Promise<void> => {
-      return ipcRenderer.invoke('prompts:reveal-file');
-    },
   });
 }

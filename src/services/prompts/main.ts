@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { app, shell } from 'electron';
+import { app } from 'electron';
 import { z } from 'zod';
 
 const CURRENT_VERSION = 1;
@@ -78,9 +78,4 @@ export async function loadPrompts(): Promise<SystemPrompt[]> {
     await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
     return defaultPrompts.prompts;
   }
-}
-
-export function revealPromptsFile(): void {
-  const filePath = getPromptsFilePath();
-  void shell.showItemInFolder(filePath);
 }

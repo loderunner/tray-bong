@@ -1,10 +1,11 @@
+/// <reference types="./index.d.ts" />
 import { useCallback, useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import type { ModelInfo, Provider } from '@/services/settings/main';
 
 function handleOpenPromptsFile(): void {
-  void Prompts.revealPromptsFile();
+  void SettingsWindow.revealPromptsFile();
 }
 
 function maskApiKey(key: string): string {
@@ -160,7 +161,12 @@ export default function App() {
                 setModel(e.target.value);
               }}
             />
-            <p className={twMerge("mt-1 text-xs text-gray-500", model.trim() === '' && 'hidden')}>
+            <p
+              className={twMerge(
+                'mt-1 text-xs text-gray-500',
+                model.trim() === '' && 'hidden',
+              )}
+            >
               Tip: Run{' '}
               <code className="rounded bg-gray-100 px-1 select-text">
                 ollama pull {model.trim()}

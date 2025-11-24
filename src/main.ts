@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import { app } from 'electron';
 import started from 'electron-squirrel-startup';
 
+import { setupConversationsWindowIPC } from './apps/conversations/main';
 import { setupPromptWindowIPC } from './apps/prompt/main';
+import { setupSettingsWindowIPC } from './apps/settings/main';
 import { setupAIIPC } from './services/ai/ipc';
 import { setupConversationsIPC } from './services/conversations/ipc';
 import { getConversationsDirectory } from './services/conversations/main';
@@ -31,6 +33,8 @@ app.on('ready', async () => {
   setupPromptsIPC();
   setupConversationsIPC();
   setupPromptWindowIPC();
+  setupConversationsWindowIPC();
+  setupSettingsWindowIPC();
 
   logger.info('Application started');
 

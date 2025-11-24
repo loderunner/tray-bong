@@ -1,8 +1,9 @@
 import path from 'node:path';
 
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, ipcMain, shell } from 'electron';
 
 import * as logger from '@/services/logger/main';
+import { getPromptsFilePath } from '@/services/prompts/main';
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
 declare const SETTINGS_VITE_NAME: string | undefined;
@@ -72,5 +73,12 @@ export function createSettingsWindow(): void {
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
+  });
+}
+
+export function setupSettingsWindowIPC(): void {
+  ipcMain.handle('settings-window:reveal-prompts', () => {
+    const filePath = getPromptsFilePath();
+    void shell.showItemInFolder(filePath);
   });
 }

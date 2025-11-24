@@ -38,6 +38,11 @@ const config: ForgeConfig = {
           config: 'vite.preload.settings.config.ts',
           target: 'preload',
         },
+        {
+          entry: 'src/apps/conversations/preload.ts',
+          config: 'vite.preload.conversations.config.ts',
+          target: 'preload',
+        },
       ],
       renderer: [
         {
@@ -47,6 +52,10 @@ const config: ForgeConfig = {
         {
           name: 'settings',
           config: 'vite.renderer.settings.config.ts',
+        },
+        {
+          name: 'conversations',
+          config: 'vite.renderer.conversations.config.ts',
         },
       ],
     }),

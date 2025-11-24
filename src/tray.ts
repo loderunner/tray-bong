@@ -1,12 +1,12 @@
-import { Menu, Tray, nativeImage, shell } from 'electron';
+import { Menu, Tray, nativeImage } from 'electron';
 
+import { createConversationsWindow } from './apps/conversations/main';
 import { createPromptWindow } from './apps/prompt/main';
 import { createSettingsWindow } from './apps/settings/main';
 import {
   type Conversation,
   type ConversationMetadata,
   createConversationId,
-  getConversationsDirectory,
   listConversations,
   loadConversation,
 } from './services/conversations/main';
@@ -38,10 +38,9 @@ function buildConversationsSubmenu(
   if (conversations.length > 0) {
     items.push({ type: 'separator' });
     items.push({
-      label: 'Reveal conversation files...',
+      label: 'Show more...',
       click: () => {
-        const directory = getConversationsDirectory();
-        void shell.openPath(directory);
+        createConversationsWindow();
       },
     });
   }
