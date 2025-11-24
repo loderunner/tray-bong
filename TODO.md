@@ -13,6 +13,8 @@
 
 # Later
 
+- memorize window position and size - per-conversation and use latest
+  conversation as default
 - Better colors & dark mode
 - Show thinking indicator and stream thinking text - hidden revealable text
 - configure prompts to accept variables, and settings like reasoning budget,
