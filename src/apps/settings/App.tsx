@@ -49,22 +49,6 @@ export default function App() {
     void load();
   }, []);
 
-  useEffect(() => {
-    function updateModels(): void {
-      const providerModels = Settings.PROVIDER_MODELS[provider];
-      setModels(providerModels);
-      // Default to first model when switching provider
-      if (providerModels.length > 0) {
-        setModel(providerModels[0].id);
-      } else {
-        // Ollama - allow free text input
-        setModel('');
-      }
-    }
-
-    updateModels();
-  }, [provider]);
-
   async function handleSave(): Promise<void> {
     // Use the edited API key if user was editing, otherwise keep original
     const keyToSave = apiKeyEdited ? apiKey : originalApiKey;
@@ -133,7 +117,17 @@ export default function App() {
             id="provider"
             value={provider}
             onChange={(e) => {
-              setProvider(e.target.value as Provider);
+              const newProvider = e.target.value as Provider;
+              setProvider(newProvider);
+              const providerModels = Settings.PROVIDER_MODELS[newProvider];
+              setModels(providerModels);
+              // Default to first model when switching provider
+              if (providerModels.length > 0) {
+                setModel(providerModels[0].id);
+              } else {
+                // Ollama - allow free text input
+                setModel('');
+              }
             }}
           >
             <option value="openai">OpenAI</option>
