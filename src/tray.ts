@@ -15,9 +15,14 @@ import { loadPrompts } from './services/prompts/main';
 let tray: Tray | null = null;
 let contextMenu: Menu | null = null;
 let needsUpdate = false;
+let menuOpen = false;
 
 export function markMenuNeedsUpdate(): void {
-  needsUpdate = true;
+  if (menuOpen) {
+    needsUpdate = true;
+  } else {
+    void updateTrayMenu();
+  }
 }
 
 function buildConversationsSubmenu(
@@ -95,13 +100,19 @@ export async function updateTrayMenu(): Promise<void> {
 
   const newContextMenu = Menu.buildFromTemplate(menuItems);
 
-  // Remove old menu close listener if it exists
+  // Remove old menu listeners if they exist
   if (contextMenu !== null) {
     contextMenu.removeAllListeners('menu-will-close');
+    contextMenu.removeAllListeners('menu-will-show');
   }
 
-  // Add close listener to new menu
+  // Add listeners to track menu state
+  newContextMenu.on('menu-will-show', () => {
+    menuOpen = true;
+  });
+
   newContextMenu.on('menu-will-close', () => {
+    menuOpen = false;
     setImmediate(async () => {
       if (needsUpdate) {
         await updateTrayMenu();
