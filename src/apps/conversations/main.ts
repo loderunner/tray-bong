@@ -7,9 +7,7 @@ import {
   getConversationsDirectory,
   loadConversation,
 } from "@/services/conversations/main";
-import { createLogger } from "@/services/logger/main";
-
-const logger = createLogger("ConversationsWindow");
+import { useLogger } from "@/services/logger/useLogger";
 
 declare const CONVERSATIONS_VITE_DEV_SERVER_URL: string | undefined;
 declare const CONVERSATIONS_VITE_NAME: string | undefined;
@@ -17,6 +15,7 @@ declare const CONVERSATIONS_VITE_NAME: string | undefined;
 let conversationsWindow: BrowserWindow | null = null;
 
 export function createConversationsWindow(): void {
+  const logger = useLogger("ConversationsWindow");
   if (conversationsWindow !== null) {
     conversationsWindow.focus();
     return;

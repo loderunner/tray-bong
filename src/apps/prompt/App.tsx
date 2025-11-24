@@ -11,7 +11,7 @@ import { twMerge } from 'tailwind-merge';
 import { Message } from './Message';
 
 import { type Conversation } from '@/services/conversations/main';
-import { useLogger } from '@/services/logger/useLogger';
+import { useLogger } from '@/services/logger/LoggerProvider';
 
 function getSystemPrompt(conversation: Conversation): string {
   const systemMessage = conversation.messages.find(
@@ -29,7 +29,7 @@ type Props = {
 };
 
 export default function App({ initialData }: Props) {
-  const logger = useLogger();
+  const logger = useLogger('Prompt');
   const [title, setTitle] = useState<string>(initialData.title);
   const titleRef = useRef<string>(title);
   const systemPrompt = useMemo(

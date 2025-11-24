@@ -5,7 +5,7 @@ import { exposePrompts } from '@/services/prompts/renderer';
 import { exposeSettings } from '@/services/settings/renderer';
 
 // Expose logger to renderer
-exposeLogger('Settings');
+exposeLogger();
 
 // Expose settings service
 exposeSettings();

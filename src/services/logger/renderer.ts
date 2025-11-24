@@ -1,54 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import { type Logger, whatWorld } from './main';
-
-export function createLogger(moduleName: string): Logger {
-  const world = whatWorld();
-
-  if (world !== 'ContextBridge') {
-    throw new Error(
-      'createLogger can only be called in the context bridge process',
-    );
-  }
-
-  return {
-    error: (message: string) => {
-      void ipcRenderer.invoke(
-        'log:error',
-        'ContextBridge',
-        moduleName,
-        message,
-      );
-    },
-    info: (message: string) => {
-      void ipcRenderer.invoke('log:info', 'ContextBridge', moduleName, message);
-    },
-    debug: (message: string) => {
-      void ipcRenderer.invoke(
-        'log:debug',
-        'ContextBridge',
-        moduleName,
-        message,
-      );
-    },
-  };
-}
+import type { LoggerBackend } from './backend';
 
 /**
- * Exposes a logger to the renderer process via context bridge.
- *
- * @param moduleName - The name of the renderer process (e.g., 'Prompt', 'Settings')
+ * Exposes the logger backend to the renderer process via context bridge.
+ * The backend accepts all log parameters including moduleName.
  */
-export function exposeLogger(moduleName: string): void {
-  contextBridge.exposeInMainWorld('Logger', {
-    error: (message: string) => {
-      void ipcRenderer.invoke('log:error', 'Renderer', moduleName, message);
+export function exposeLogger(): void {
+  const backend: LoggerBackend = {
+    write: (level, world, moduleName, message) => {
+      void ipcRenderer.invoke('log:write', level, world, moduleName, message);
     },
-    info: (message: string) => {
-      void ipcRenderer.invoke('log:info', 'Renderer', moduleName, message);
-    },
-    debug: (message: string) => {
-      void ipcRenderer.invoke('log:debug', 'Renderer', moduleName, message);
-    },
-  });
+  };
+
+  contextBridge.exposeInMainWorld('LoggerBackend', backend);
 }

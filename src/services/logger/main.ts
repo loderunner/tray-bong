@@ -1,8 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { app } from 'electron';
-
 const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 
 type LogLevel = 'ERROR' | 'INFO' | 'DEBUG';
@@ -146,6 +144,7 @@ export async function init(): Promise<void> {
   if (isDevelopment) {
     logStream = process.stdout;
   } else {
+    const { app } = await import('electron');
     const logsDir = app.getPath('logs');
     logFilePath = path.join(logsDir, 'app.log');
 
@@ -166,28 +165,3 @@ export type Logger = {
   info: (message: string) => void;
   debug: (message: string) => void;
 };
-
-/**
- * Creates a logger instance for a specific module.
- *
- * @param moduleName - The name of the module creating the logger
- * @returns A logger object with error, info, and debug methods
- */
-export function createLogger(moduleName: string): Logger {
-  const world = whatWorld();
-  if (world !== 'Main') {
-    throw new Error('createLogger can only be called in the main process');
-  }
-
-  return {
-    error: (message: string) => {
-      writeLog('ERROR', 'Main', moduleName, message);
-    },
-    info: (message: string) => {
-      writeLog('INFO', 'Main', moduleName, message);
-    },
-    debug: (message: string) => {
-      writeLog('DEBUG', 'Main', moduleName, message);
-    },
-  };
-}

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App';
 
-import { LoggerProvider } from '@/services/logger/useLogger';
+import LoggerProvider from '@/services/logger/LoggerProvider';
 
 import './index.css';
 

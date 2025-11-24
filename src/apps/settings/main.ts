@@ -2,10 +2,8 @@ import path from 'node:path';
 
 import { BrowserWindow, ipcMain, shell } from 'electron';
 
-import { createLogger } from '@/services/logger/main';
+import { useLogger } from '@/services/logger/useLogger';
 import { getPromptsFilePath } from '@/services/prompts/main';
-
-const logger = createLogger('SettingsWindow');
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
 declare const SETTINGS_VITE_NAME: string | undefined;
@@ -13,6 +11,7 @@ declare const SETTINGS_VITE_NAME: string | undefined;
 let settingsWindow: BrowserWindow | null = null;
 
 export function createSettingsWindow(): void {
+  const logger = useLogger('SettingsWindow');
   if (settingsWindow !== null) {
     settingsWindow.focus();
     return;

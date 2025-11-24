@@ -3,9 +3,7 @@ import { type MessageEvent, ipcMain } from 'electron';
 
 import { generateTextFromPrompt, streamChat } from './main';
 
-import { createLogger } from '@/services/logger/main';
-
-const logger = createLogger('AI');
+import { useLogger } from '@/services/logger/useLogger';
 
 export type StreamChatMessageData =
   | { chunk: UIMessageChunk }
@@ -19,6 +17,8 @@ export type StreamChatControlMessage = { abort: true };
  * Must be called after the app is ready.
  */
 export function setupAIIPC(): void {
+  const logger = useLogger('AI');
+
   ipcMain.handle('ai:generate-text', async (_event, prompt: string) => {
     return await generateTextFromPrompt(prompt);
   });

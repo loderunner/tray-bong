@@ -125,6 +125,13 @@ export default [
   },
   reactHooks.configs.flat.recommended,
   {
+    files: ['**/*.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+      'react-hooks/exhaustive-deps': 'off',
+    },
+  },
+  {
     files: ['**/*.test.ts'],
     ...vitest.configs.recommended,
   },

@@ -6,7 +6,7 @@ import { exposeConversations } from '@/services/conversations/renderer';
 import { exposeLogger } from '@/services/logger/renderer';
 
 // Expose logger to renderer
-exposeLogger('Prompt');
+exposeLogger();
 
 // Expose AI service
 exposeAI();

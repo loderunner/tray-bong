@@ -3,9 +3,7 @@ import path from 'node:path';
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
-import { createLogger } from '@/services/logger/main';
-
-const logger = createLogger('PromptWindow');
+import { useLogger } from '@/services/logger/useLogger';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
@@ -16,6 +14,7 @@ let currentConversation: Conversation | null = null;
 export async function createPromptWindow(
   conversation: Conversation,
 ): Promise<void> {
+  const logger = useLogger('PromptWindow');
   if (promptWindow !== null) {
     promptWindow.destroy();
   }
@@ -104,6 +103,7 @@ export function setupPromptWindowIPC(): void {
   ipcMain.handle(
     'prompt-window:get-sf-symbol',
     (_event, symbolName: string) => {
+      const logger = useLogger('PromptWindow');
       try {
         const image = nativeImage.createFromNamedImage(symbolName);
         const png = image.toPNG();

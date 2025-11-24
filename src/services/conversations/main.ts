@@ -6,15 +6,14 @@ import { app } from 'electron';
 import { uuidv7 } from 'uuidv7';
 import { ZodError, z } from 'zod';
 
-import { createLogger } from '@/services/logger/main';
-
-const logger = createLogger('Conversations');
+import { useLogger } from '@/services/logger/useLogger';
 
 const CURRENT_VERSION = 1;
 
 const UIMessagesSchema = z.array(z.looseObject({})).pipe(
   z.transform(async (messages, ctx) => {
     try {
+      const logger = useLogger('Conversations');
       logger.debug(`Validating ${messages.length} messages`);
       const parsed = await validateUIMessages({ messages });
       return parsed;
@@ -127,6 +126,7 @@ export async function listConversations(
   offset = 0,
 ): Promise<ConversationMetadata[]> {
   const directory = getConversationsDirectory();
+  const logger = useLogger('Conversations');
 
   try {
     const files = await fs.readdir(directory);

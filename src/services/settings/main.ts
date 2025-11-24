@@ -4,9 +4,7 @@ import path from 'node:path';
 import { app, safeStorage } from 'electron';
 import { z } from 'zod';
 
-import { createLogger } from '@/services/logger/main';
-
-const logger = createLogger('Settings');
+import { useLogger } from '@/services/logger/useLogger';
 
 const CURRENT_VERSION = 1;
 
@@ -114,6 +112,7 @@ function migrateSettings(data: unknown): SettingsFile {
 
 export async function loadSettings(): Promise<ProviderSettings> {
   const filePath = getSettingsFilePath();
+  const logger = useLogger('Settings');
 
   try {
     const fileContent = await fs.readFile(filePath, 'utf-8');

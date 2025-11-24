@@ -13,10 +13,8 @@ import {
 } from 'ai';
 import { createOllama } from 'ollama-ai-provider-v2';
 
-import { createLogger } from '@/services/logger/main';
+import { useLogger } from '@/services/logger/useLogger';
 import { loadSettings } from '@/services/settings/main';
-
-const logger = createLogger('AI');
 
 /**
  * Gets the configured language model based on settings.
@@ -57,6 +55,7 @@ export async function getModel(): Promise<LanguageModel> {
  * @returns The generated text
  */
 export async function generateTextFromPrompt(prompt: string): Promise<string> {
+  const logger = useLogger('AI');
   logger.info(`Generating text from prompt`);
   const model = await getModel();
 
@@ -87,6 +86,7 @@ export async function* streamChat(
   messages: UIMessage[],
   abortSignal?: AbortSignal,
 ): AsyncGenerator<UIMessageChunk, void, unknown> {
+  const logger = useLogger('AI');
   logger.info(`Streaming chat starting`);
 
   const modelMessages = pruneMessages({

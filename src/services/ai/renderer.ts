@@ -3,14 +3,13 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 import type { StreamChatMessageData } from './ipc';
 
-import { createLogger } from '@/services/logger/renderer';
-
-const logger = createLogger('AI');
+import { useLogger } from '@/services/logger/useLogger';
 
 /**
  * Exposes AI API to the renderer process via context bridge.
  */
 export function exposeAI(): void {
+  const logger = useLogger('AI');
   contextBridge.exposeInMainWorld('AI', {
     streamChat: ({
       messages,

@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron';
 
+import type { LogLevel } from './backend';
 import { writeLog } from './main';
 
 /**
@@ -8,23 +9,15 @@ import { writeLog } from './main';
  */
 export function setupLoggerIPC(): void {
   ipcMain.handle(
-    'log:error',
-    (_event, world: string, moduleName: string, message: string) => {
-      writeLog('ERROR', world, moduleName, message);
-    },
-  );
-
-  ipcMain.handle(
-    'log:info',
-    (_event, world: string, moduleName: string, message: string) => {
-      writeLog('INFO', world, moduleName, message);
-    },
-  );
-
-  ipcMain.handle(
-    'log:debug',
-    (_event, world: string, moduleName: string, message: string) => {
-      writeLog('DEBUG', world, moduleName, message);
+    'log:write',
+    (
+      _event,
+      level: LogLevel,
+      world: string,
+      moduleName: string,
+      message: string,
+    ) => {
+      writeLog(level, world, moduleName, message);
     },
   );
 }
