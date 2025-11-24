@@ -54,7 +54,7 @@ export type ProviderSettings = {
 };
 
 export function getSettingsFilePath(): string {
-  return path.join(app.getPath('userData'), 'settings.json');
+  return path.join(app.getPath('userData'), 'userData', 'settings.json');
 }
 
 function getDefaultSettings(): SettingsFile {

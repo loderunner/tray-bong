@@ -1,8 +1,5 @@
 # Now
 
-- Model not loading from JSON in settings window
-- Fix global type declarations problems (globals are only for react code,
-  exposed over the context bridge)
 - Don't destroy latest conversation, and bring it back up by default (unless a
   new prompt is selected)
 - Fix issue that I can't move the window by grabbing the background of a div, if

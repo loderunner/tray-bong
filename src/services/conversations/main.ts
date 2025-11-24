@@ -50,7 +50,7 @@ const ConversationFileSchema = z.object({
 type ConversationFile = z.infer<typeof ConversationFileSchema>;
 
 export function getConversationsDirectory(): string {
-  return path.join(app.getPath('userData'), 'conversations');
+  return path.join(app.getPath('userData'), 'userData', 'conversations');
 }
 
 function getConversationFilePath(id: string): string {

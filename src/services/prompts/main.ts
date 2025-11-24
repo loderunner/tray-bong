@@ -19,7 +19,7 @@ const PromptsFileSchema = z.object({
 type PromptsFile = z.infer<typeof PromptsFileSchema>;
 
 export function getPromptsFilePath(): string {
-  return path.join(app.getPath('userData'), 'config', 'prompts.json');
+  return path.join(app.getPath('userData'), 'userData', 'prompts.json');
 }
 
 function getDefaultPrompts(): PromptsFile {
