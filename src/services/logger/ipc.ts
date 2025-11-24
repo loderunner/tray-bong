@@ -9,22 +9,22 @@ import { writeLog } from './main';
 export function setupLoggerIPC(): void {
   ipcMain.handle(
     'log:error',
-    (_event, rendererName: string, message: string) => {
-      writeLog('ERROR', rendererName, message);
+    (_event, world: string, moduleName: string, message: string) => {
+      writeLog('ERROR', world, moduleName, message);
     },
   );
 
   ipcMain.handle(
     'log:info',
-    (_event, rendererName: string, message: string) => {
-      writeLog('INFO', rendererName, message);
+    (_event, world: string, moduleName: string, message: string) => {
+      writeLog('INFO', world, moduleName, message);
     },
   );
 
   ipcMain.handle(
     'log:debug',
-    (_event, rendererName: string, message: string) => {
-      writeLog('DEBUG', rendererName, message);
+    (_event, world: string, moduleName: string, message: string) => {
+      writeLog('DEBUG', world, moduleName, message);
     },
   );
 }

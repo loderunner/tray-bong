@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 import { exposeConversations } from "@/services/conversations/renderer";
+import { exposeLogger } from "@/services/logger/renderer";
+
+// Expose logger to renderer
+exposeLogger("Conversations");
 
 exposeConversations();
 

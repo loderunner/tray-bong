@@ -1,5 +1,5 @@
 declare global {
-  var logger: {
+  var Logger: {
     error: (message: string) => void;
     info: (message: string) => void;
     debug: (message: string) => void;

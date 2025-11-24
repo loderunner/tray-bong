@@ -20,6 +20,23 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 };
 
 /**
+ * Detects the execution context/world.
+ *
+ * @returns The world context: 'Main', 'Renderer', or 'ContextBridge'
+ */
+export function whatWorld(): 'Renderer' | 'Main' | 'ContextBridge' {
+  if (typeof window === 'undefined') {
+    return 'Main';
+  }
+
+  if (typeof Buffer === 'undefined') {
+    return 'Renderer';
+  }
+
+  return 'ContextBridge';
+}
+
+/**
  * Converts a Date to an ISO string in local timezone.
  *
  * @param date - The date to convert
@@ -44,20 +61,22 @@ function toLocalISOString(date: Date): string {
 }
 
 /**
- * Formats a log message with timestamp, level, and context.
+ * Formats a log message with timestamp, level, world, and module context.
  *
  * @param level - The log level (ERROR, INFO, DEBUG)
- * @param context - The process context (Main, Renderer)
+ * @param world - The world context (Main, Renderer, ContextBridge)
+ * @param module - The module name
  * @param message - The log message
  * @returns Formatted log line
  */
 function formatLogLine(
   level: string,
-  context: string,
+  world: string,
+  module: string,
   message: string,
 ): string {
   const timestamp = toLocalISOString(new Date());
-  return `${timestamp} [${level}][${context}] ${message}\n`;
+  return `${timestamp} [${level}][${world}][${module}] ${message}\n`;
 }
 
 /**
@@ -89,12 +108,14 @@ async function rotateLogIfNeeded(): Promise<void> {
  * Filters out messages below the minimum log level.
  *
  * @param level - The log level
- * @param context - The process context
+ * @param world - The world context (Main, Renderer, ContextBridge)
+ * @param module - The module name
  * @param message - The log message
  */
 export function writeLog(
   level: LogLevel,
-  context: string,
+  world: string,
+  module: string,
   message: string,
 ): void {
   const levelPriority = LOG_LEVEL_PRIORITY[level];
@@ -104,7 +125,7 @@ export function writeLog(
     return; // Skip logs below minimum level
   }
 
-  const logLine = formatLogLine(level, context, message);
+  const logLine = formatLogLine(level, world, module, message);
 
   if (logStream === null) {
     logBuffer.push(logLine);
@@ -140,29 +161,33 @@ export async function init(): Promise<void> {
   logBuffer.length = 0;
 }
 
-/**
- * Logs an error message.
- *
- * @param message - The error message to log
- */
-export function error(message: string): void {
-  writeLog('ERROR', 'Main', message);
-}
+export type Logger = {
+  error: (message: string) => void;
+  info: (message: string) => void;
+  debug: (message: string) => void;
+};
 
 /**
- * Logs an info message.
+ * Creates a logger instance for a specific module.
  *
- * @param message - The info message to log
+ * @param moduleName - The name of the module creating the logger
+ * @returns A logger object with error, info, and debug methods
  */
-export function info(message: string): void {
-  writeLog('INFO', 'Main', message);
-}
+export function createLogger(moduleName: string): Logger {
+  const world = whatWorld();
+  if (world !== 'Main') {
+    throw new Error('createLogger can only be called in the main process');
+  }
 
-/**
- * Logs a debug message.
- *
- * @param message - The debug message to log
- */
-export function debug(message: string): void {
-  writeLog('DEBUG', 'Main', message);
+  return {
+    error: (message: string) => {
+      writeLog('ERROR', 'Main', moduleName, message);
+    },
+    info: (message: string) => {
+      writeLog('INFO', 'Main', moduleName, message);
+    },
+    debug: (message: string) => {
+      writeLog('DEBUG', 'Main', moduleName, message);
+    },
+  };
 }

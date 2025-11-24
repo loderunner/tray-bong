@@ -6,7 +6,9 @@ import { app } from 'electron';
 import { uuidv7 } from 'uuidv7';
 import { ZodError, z } from 'zod';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
+
+const logger = createLogger('Conversations');
 
 const CURRENT_VERSION = 1;
 

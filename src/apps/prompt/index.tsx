@@ -2,6 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
+
+import { LoggerProvider } from '@/services/logger/useLogger';
+
 import './index.css';
 
 const conversation = await PromptWindow.getPromptInfo();
@@ -14,6 +17,8 @@ if (rootElement === null) {
 const root = createRoot(rootElement);
 root.render(
   <StrictMode>
-    <App initialData={conversation} />
+    <LoggerProvider>
+      <App initialData={conversation} />
+    </LoggerProvider>
   </StrictMode>,
 );

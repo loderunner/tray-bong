@@ -10,11 +10,13 @@ import { setupAIIPC } from './services/ai/ipc';
 import { setupConversationsIPC } from './services/conversations/ipc';
 import { getConversationsDirectory } from './services/conversations/main';
 import { setupLoggerIPC } from './services/logger/ipc';
-import * as logger from './services/logger/main';
+import { createLogger, init } from './services/logger/main';
 import { setupPromptsIPC } from './services/prompts/ipc';
 import { getPromptsFilePath, loadPrompts } from './services/prompts/main';
 import { setupSettingsIPC } from './services/settings/ipc';
 import { createTray, markMenuNeedsUpdate, updateTrayMenu } from './tray';
+
+const logger = createLogger('App');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -25,7 +27,7 @@ app.dock?.hide();
 // app.applicationMenu = null;
 
 app.on('ready', async () => {
-  await logger.init();
+  await init();
   setupLoggerIPC();
 
   setupAIIPC();

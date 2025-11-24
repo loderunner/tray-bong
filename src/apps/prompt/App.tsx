@@ -11,6 +11,7 @@ import { twMerge } from 'tailwind-merge';
 import { Message } from './Message';
 
 import { type Conversation } from '@/services/conversations/main';
+import { useLogger } from '@/services/logger/useLogger';
 
 function getSystemPrompt(conversation: Conversation): string {
   const systemMessage = conversation.messages.find(
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export default function App({ initialData }: Props) {
+  const logger = useLogger();
   const [title, setTitle] = useState<string>(initialData.title);
   const titleRef = useRef<string>(title);
   const systemPrompt = useMemo(
@@ -85,9 +87,6 @@ export default function App({ initialData }: Props) {
               const abortStream = AI.streamChat({
                 messages: uiMessages,
                 onChunk: (chunk) => {
-                  logger.debug(
-                    `onChunk: type=${chunk.type}, id=${'id' in chunk ? chunk.id : 'N/A'}`,
-                  );
                   controller.enqueue(chunk);
                 },
                 onDone: () => {
@@ -293,6 +292,7 @@ export default function App({ initialData }: Props) {
       editingMessageId,
       editingMessageIndex,
       input,
+      logger,
       messages,
       regenerate,
       sendMessage,

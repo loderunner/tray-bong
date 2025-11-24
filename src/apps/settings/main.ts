@@ -2,8 +2,10 @@ import path from 'node:path';
 
 import { BrowserWindow, ipcMain, shell } from 'electron';
 
-import * as logger from '@/services/logger/main';
+import { createLogger } from '@/services/logger/main';
 import { getPromptsFilePath } from '@/services/prompts/main';
+
+const logger = createLogger('SettingsWindow');
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
 declare const SETTINGS_VITE_NAME: string | undefined;
