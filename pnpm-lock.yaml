@@ -47,6 +47,9 @@ importers:
       tailwind-merge:
         specifier: 3.4.0
         version: 3.4.0
+      uuidv7:
+        specifier: 1.0.2
+        version: 1.0.2
       zod:
         specifier: 4.1.12
         version: 4.1.12
@@ -3844,6 +3847,10 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  uuidv7@1.0.2:
+    resolution: {integrity: sha512-8JQkH4ooXnm1JCIhqTMbtmdnYEn6oKukBxHn1Ic9878jMkL7daTI7anTExfY18VRCX7tcdn5quzvCb6EWrR8PA==}
+    hasBin: true
 
   validate-npm-package-license@3.0.4:
     resolution: {integrity: sha512-DpKm2Ui/xN7/HQKCtpZxoRWBhZ9Z0kqtygG8XCgNQ8ZlDnxuQmWhj566j8fN4Cu3/JmbhsDo7fcAJq4s9h27Ew==}
@@ -8418,6 +8425,8 @@ snapshots:
       mem: 4.3.0
 
   util-deprecate@1.0.2: {}
+
+  uuidv7@1.0.2: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:

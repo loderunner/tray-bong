@@ -2,24 +2,23 @@ import path from 'node:path';
 
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
+import type { Conversation } from '@/services/conversations/main';
 import * as logger from '@/services/logger/main';
-import type { SystemPrompt } from '@/services/prompts/main';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
 
 let promptWindow: BrowserWindow | null = null;
-let currentPromptLabel: string = '';
-let currentSystemPrompt: string = '';
+let currentConversation: Conversation | null = null;
 
-export function createPromptWindow(prompt: SystemPrompt): void {
+export async function createPromptWindow(
+  conversation: Conversation,
+): Promise<void> {
   if (promptWindow !== null) {
-    promptWindow.focus();
-    return;
+    promptWindow.destroy();
   }
 
-  currentPromptLabel = prompt.label;
-  currentSystemPrompt = prompt.prompt;
+  currentConversation = conversation;
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
@@ -88,17 +87,16 @@ export function createPromptWindow(prompt: SystemPrompt): void {
   });
   promptWindow.on('closed', () => {
     promptWindow = null;
-    currentPromptLabel = '';
-    currentSystemPrompt = '';
+    currentConversation = null;
   });
 }
 
 export function setupPromptWindowIPC(): void {
   ipcMain.handle('prompt-window:get-info', () => {
-    return {
-      label: currentPromptLabel,
-      systemPrompt: currentSystemPrompt,
-    };
+    if (currentConversation === null) {
+      throw new Error('No conversation available');
+    }
+    return currentConversation;
   });
 
   ipcMain.handle(

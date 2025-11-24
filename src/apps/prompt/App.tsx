@@ -1,14 +1,39 @@
 /// <reference types="./index.d.ts" />
 import { useChat } from '@ai-sdk/react';
-import type { UIMessageChunk } from 'ai';
+import {
+  type ChatOnFinishCallback,
+  type UIMessage,
+  type UIMessageChunk,
+} from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { Message } from './Message';
 
-export default function App() {
-  const [label, setLabel] = useState<string>('');
-  const [systemPrompt, setSystemPrompt] = useState<string>('');
+import { type Conversation } from '@/services/conversations/main';
+
+function getSystemPrompt(conversation: Conversation): string {
+  const systemMessage = conversation.messages.find(
+    (msg) => msg.role === 'system',
+  );
+  if (systemMessage === undefined) {
+    return '';
+  }
+  const textParts = systemMessage.parts.filter((part) => part.type === 'text');
+  return textParts.map((part) => part.text).join('');
+}
+
+type Props = {
+  initialData: Conversation;
+};
+
+export default function App({ initialData }: Props) {
+  const [title, setTitle] = useState<string>(initialData.title);
+  const titleRef = useRef<string>(title);
+  const systemPrompt = useMemo(
+    () => getSystemPrompt(initialData),
+    [initialData],
+  );
   const [showSystemPrompt, setShowSystemPrompt] = useState<boolean>(false);
   const [input, setInput] = useState<string>('');
   const [streamingError, setStreamingError] = useState<string | null>(null);
@@ -17,8 +42,33 @@ export default function App() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
+  useEffect(() => {
+    titleRef.current = title;
+  }, [title]);
+
+  const onFinish: ChatOnFinishCallback<UIMessage> = async ({
+    messages: finishedMessages,
+  }) => {
+    try {
+      logger.info(
+        `Saving conversation ${initialData.id} "${titleRef.current}" with ${finishedMessages.length} messages`,
+      );
+      await Conversations.saveConversation({
+        ...initialData,
+        title: titleRef.current,
+        messages: finishedMessages,
+      });
+    } catch (error) {
+      logger.error(
+        `Failed to save conversation: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  };
+
   const { messages, sendMessage, status, stop, setMessages, regenerate } =
     useChat({
+      id: initialData.id,
+      messages: initialData.messages,
       transport: {
         sendMessages: async ({ messages: uiMessages, abortSignal }) => {
           logger.info(`sendMessages called with ${uiMessages.length} messages`);
@@ -74,34 +124,8 @@ export default function App() {
         logger.error(`useChat error: ${error.message}`);
         setStreamingError(error.message);
       },
+      onFinish,
     });
-
-  useEffect(() => {
-    logger.debug(`Status changed: ${status}`);
-  }, [status]);
-
-  useEffect(() => {
-    async function init(): Promise<void> {
-      const { label: promptLabel, systemPrompt: systemPromptText } =
-        await PromptWindow.getPromptInfo();
-      setLabel(promptLabel);
-      setSystemPrompt(systemPromptText);
-      document.title = promptLabel;
-
-      // Initialize chat with system prompt as first message
-      if (systemPromptText.trim() !== '') {
-        setMessages([
-          {
-            id: 'system',
-            role: 'system',
-            parts: [{ type: 'text', text: systemPromptText }],
-          },
-        ]);
-      }
-    }
-
-    void init();
-  }, [setMessages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -213,7 +237,7 @@ export default function App() {
   ]);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (status === 'streaming') {
         void stop();
@@ -228,12 +252,13 @@ export default function App() {
               editedMessage.parts = [{ type: 'text', text: input.trim() }];
             }
 
+            setMessages(updatedMessages);
+
             const firstAssistantAfterEdit = updatedMessages
               .slice(editingMessageIndex + 1)
               .find((m) => m.role === 'assistant');
 
             if (firstAssistantAfterEdit !== undefined) {
-              setMessages(updatedMessages);
               void regenerate({ messageId: firstAssistantAfterEdit.id });
             }
           }
@@ -244,23 +269,23 @@ export default function App() {
           const userMessageText = input.trim();
           const isFirstUserMessage = visibleMessages.length === 0;
 
+          if (isFirstUserMessage && systemPrompt.trim() !== '') {
+            const titlePrompt = `Generate a concise 3-8 word title for this conversation.\nSystem context: ${systemPrompt}\nFirst user message: ${userMessageText}\n\nRespond with ONLY the title, nothing else.`;
+            try {
+              const generatedTitle = await AI.generateText(titlePrompt);
+              titleRef.current = generatedTitle;
+              setTitle(generatedTitle);
+              document.title = generatedTitle;
+            } catch (error) {
+              logger.error(
+                `Failed to generate title: ${error instanceof Error ? error.message : String(error)}`,
+              );
+            }
+          }
+
           void sendMessage({ text: userMessageText });
           setInput('');
           setStreamingError(null);
-
-          if (isFirstUserMessage && systemPrompt.trim() !== '') {
-            const titlePrompt = `Generate a concise 3-8 word title for this conversation.\nSystem context: ${systemPrompt}\nFirst user message: ${userMessageText}\n\nRespond with ONLY the title, nothing else.`;
-            void AI.generateText(titlePrompt)
-              .then((title) => {
-                setLabel(title);
-                document.title = title;
-              })
-              .catch((error) => {
-                logger.error(
-                  `Failed to generate title: ${error instanceof Error ? error.message : String(error)}`,
-                );
-              });
-          }
         }
       }
     },
@@ -282,7 +307,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col">
       <div className="shrink-0 border-b border-white/10 p-4">
-        <h1 className="w-fit text-xl font-semibold no-app-drag">{label}</h1>
+        <h1 className="w-fit text-xl font-semibold no-app-drag">{title}</h1>
         {systemPrompt.trim() !== '' && (
           <button
             className={twMerge(

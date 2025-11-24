@@ -7,6 +7,7 @@ import {
   type UIMessageChunk,
   convertToModelMessages,
   generateText,
+  pruneMessages,
   smoothStream,
   streamText,
 } from 'ai';
@@ -54,6 +55,7 @@ export async function getModel(): Promise<LanguageModel> {
  * @returns The generated text
  */
 export async function generateTextFromPrompt(prompt: string): Promise<string> {
+  logger.info(`Generating text from prompt`);
   const model = await getModel();
 
   try {
@@ -83,7 +85,14 @@ export async function* streamChat(
   messages: UIMessage[],
   abortSignal?: AbortSignal,
 ): AsyncGenerator<UIMessageChunk, void, unknown> {
-  const modelMessages = convertToModelMessages(messages);
+  logger.info(`Streaming chat starting`);
+
+  const modelMessages = pruneMessages({
+    messages: convertToModelMessages(messages),
+    emptyMessages: 'remove',
+    reasoning: 'before-last-message',
+  });
+
   const model = await getModel();
 
   const result = streamText({
