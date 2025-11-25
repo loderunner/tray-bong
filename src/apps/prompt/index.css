@@ -2,14 +2,6 @@
 
 @import './markdown.css' layer(components);
 
-@utility app-drag {
-  -webkit-app-region: drag;
-}
-
-@utility no-app-drag {
-  -webkit-app-region: no-drag;
-}
-
 *:not(.select-text, .select-all):not(.select-text *):not(.select-all *) {
   @apply select-none;
 }
@@ -20,12 +12,10 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  @apply app-drag;
 }
 
 #root {
   height: 100%;
   display: flex;
   flex-direction: column;
-  @apply app-drag;
 }

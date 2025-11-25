@@ -25,4 +25,13 @@ contextBridge.exposeInMainWorld('PromptWindow', {
   copyToClipboard: (text: string): Promise<void> => {
     return ipcRenderer.invoke('prompt-window:copy-to-clipboard', text);
   },
+  startDrag: (mouseX: number, mouseY: number): void => {
+    ipcRenderer.send('prompt-window:start-drag', { mouseX, mouseY });
+  },
+  dragMove: (x: number, y: number): void => {
+    ipcRenderer.send('prompt-window:drag-move', { x, y });
+  },
+  endDrag: (): void => {
+    ipcRenderer.send('prompt-window:end-drag');
+  },
 });

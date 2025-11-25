@@ -5,7 +5,14 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from 'ai';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type MouseEvent as ReactMouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { Message } from './Message';
@@ -164,6 +171,51 @@ export default function App({ initialData }: Props) {
     inputRef.current?.focus();
   }, []);
 
+  // Custom window drag implementation to work around Chromium bug where
+  // -webkit-app-region: drag doesn't respect overflow: hidden clipping bounds.
+  // We apply this to the entire window background instead of using CSS.
+  const draggingRef = useRef(false);
+
+  const handleWindowDrag = useCallback((e: ReactMouseEvent<HTMLDivElement>) => {
+    if (e.button !== 0) {
+      return;
+    }
+
+    const target = e.target as HTMLElement;
+
+    // Don't start drag if clicking on interactive elements
+    if (
+      target.closest('button') !== null ||
+      target.closest('a') !== null ||
+      target.closest('input') !== null ||
+      target.closest('textarea') !== null ||
+      target.closest('.select-text') !== null ||
+      target.closest('.select-all') !== null
+    ) {
+      return;
+    }
+
+    e.preventDefault();
+    draggingRef.current = true;
+    PromptWindow.startDrag(e.screenX, e.screenY);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (draggingRef.current) {
+        PromptWindow.dragMove(moveEvent.screenX, moveEvent.screenY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      draggingRef.current = false;
+      PromptWindow.endDrag();
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, []);
+
   const handleMessagesAreaClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (editingMessageId === null) {
@@ -305,13 +357,13 @@ export default function App({ initialData }: Props) {
   );
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 border-b border-white/10 p-4">
-        <h1 className="w-fit text-xl font-semibold no-app-drag">{title}</h1>
+    <div className="flex h-full flex-col" onMouseDown={handleWindowDrag}>
+      <div className="shrink-0 p-4">
+        <h1 className="w-fit text-xl font-semibold">{title}</h1>
         {systemPrompt.trim() !== '' && (
           <button
             className={twMerge(
-              'mt-1 block text-left text-xs transition-colors no-app-drag',
+              'mt-1 block text-left text-xs transition-colors',
               !showSystemPrompt &&
                 'max-w-1/2 overflow-hidden text-ellipsis whitespace-nowrap text-black/30 hover:text-black/50',
               showSystemPrompt &&
@@ -330,7 +382,7 @@ export default function App({ initialData }: Props) {
         )}
       </div>
       {streamingError !== null && (
-        <div className="shrink-0 border-b border-red-500/20 bg-red-500/20 px-4 py-3 no-app-drag">
+        <div className="shrink-0 border-b border-red-500/20 bg-red-500/20 px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex-1 text-xs text-red-700 select-text">
               {streamingError}
@@ -349,21 +401,18 @@ export default function App({ initialData }: Props) {
         </div>
       )}
       <div
-        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-white/20 p-4 no-app-drag"
+        className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
         onClick={handleMessagesAreaClick}
       >
         {messagesElements}
         <div ref={messagesEndRef} />
       </div>
-      <form
-        className="shrink-0 border-t border-white/10 p-4"
-        onSubmit={handleSubmit}
-      >
+      <form className="shrink-0 p-4" onSubmit={handleSubmit}>
         <div className="flex gap-2">
           <textarea
             ref={inputRef}
             className={twMerge(
-              'max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none no-app-drag focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50',
+              'max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50',
               editingMessageId !== null
                 ? 'border-amber-500/70'
                 : 'border-white/20',
@@ -388,7 +437,7 @@ export default function App({ initialData }: Props) {
           />
           {editingMessageId !== null && (
             <button
-              className="cursor-pointer rounded-3xl border-none bg-white/10 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-3xl border-none bg-white/10 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={status === 'streaming' || status === 'submitted'}
               type="button"
               onClick={handleCancelEdit}
@@ -397,7 +446,7 @@ export default function App({ initialData }: Props) {
             </button>
           )}
           <button
-            className="cursor-pointer rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 no-app-drag hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
+            className="rounded-3xl border-none bg-blue-500/30 px-6 py-3 text-[0.95rem] font-medium transition-[background] duration-200 hover:bg-blue-500/40 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-500/30"
             disabled={
               status === 'streaming' ||
               status === 'submitted' ||

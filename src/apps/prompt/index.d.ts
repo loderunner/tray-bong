@@ -5,6 +5,9 @@ declare global {
     getPromptInfo: () => Promise<Conversation>;
     getSFSymbol: (symbolName: string) => Promise<string | null>;
     copyToClipboard: (text: string) => Promise<void>;
+    startDrag: (mouseX: number, mouseY: number) => void;
+    dragMove: (x: number, y: number) => void;
+    endDrag: () => void;
   };
 }
 

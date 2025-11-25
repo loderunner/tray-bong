@@ -100,6 +100,37 @@ export function setupPromptWindowIPC(): void {
     return currentConversation;
   });
 
+  // Manual window drag implementation to work around Chromium bug where
+  // -webkit-app-region: drag doesn't respect overflow: hidden clipping
+  ipcMain.on(
+    'prompt-window:start-drag',
+    (event, { mouseX, mouseY }: { mouseX: number; mouseY: number }) => {
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (win === null) {
+        return;
+      }
+
+      const [winX, winY] = win.getPosition();
+      const offsetX = mouseX - winX;
+      const offsetY = mouseY - winY;
+
+      const onMouseMove = (
+        _event: Electron.IpcMainEvent,
+        { x, y }: { x: number; y: number },
+      ) => {
+        win.setPosition(x - offsetX, y - offsetY);
+      };
+
+      const onMouseUp = () => {
+        ipcMain.removeListener('prompt-window:drag-move', onMouseMove);
+        ipcMain.removeListener('prompt-window:end-drag', onMouseUp);
+      };
+
+      ipcMain.on('prompt-window:drag-move', onMouseMove);
+      ipcMain.on('prompt-window:end-drag', onMouseUp);
+    },
+  );
+
   ipcMain.handle(
     'prompt-window:get-sf-symbol',
     (_event, symbolName: string) => {

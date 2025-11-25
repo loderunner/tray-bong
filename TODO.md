@@ -2,9 +2,6 @@
 
 - Don't destroy latest conversation, and bring it back up by default (unless a
   new prompt is selected)
-- Fix issue that I can't move the window by grabbing the background of a div, if
-  there's scrolled content underneath where I'm clicking (+drag when click on
-  title). For example, scroll the messages up to below the title bar.
 - Serialize createdAt and updatedAt to ISO strings
 
 # Later

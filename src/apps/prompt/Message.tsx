@@ -95,7 +95,7 @@ export function Message({
     <div
       ref={ref}
       className={twMerge(
-        'relative flex max-w-[80%] flex-col transition-opacity duration-200 no-app-drag',
+        'relative flex max-w-[80%] flex-col transition-opacity duration-200',
         message.role === 'user' && 'self-end',
         message.role === 'assistant' && 'self-start',
         ephemeral && 'opacity-40',
@@ -104,8 +104,8 @@ export function Message({
       <div
         className={twMerge(
           'markdown-content rounded-2xl px-4 py-3 leading-6 wrap-break-word',
-          message.role === 'user' && 'rounded-br-sm bg-blue-500/20',
-          message.role === 'assistant' && 'rounded-bl-sm bg-white/10',
+          message.role === 'user' && 'rounded-br-sm bg-blue-500',
+          message.role === 'assistant' && 'rounded-bl-sm bg-gray-500',
           !showActivityIndicator && 'select-text',
           editing && 'bg-amber-500/10 ring-2 ring-amber-500/50',
         )}
@@ -122,7 +122,7 @@ export function Message({
           <div className="pointer-events-none absolute right-2 -bottom-3">
             <button
               aria-label="Copy message"
-              className="pointer-events-auto relative flex h-6 w-6 items-center justify-center rounded border border-white/20 bg-white/10 transition-all duration-300 no-app-drag hover:bg-white/40 starting:opacity-0"
+              className="pointer-events-auto relative flex h-6 w-6 items-center justify-center rounded border border-white/20 bg-white/10 transition-all duration-300 hover:bg-white/40 starting:opacity-0"
               type="button"
               onClick={handleCopy}
             >
@@ -142,7 +142,7 @@ export function Message({
           <div className="pointer-events-none absolute right-2 -bottom-3">
             <button
               aria-label="Edit message"
-              className="pointer-events-auto relative flex h-6 w-6 items-center justify-center rounded border border-blue-500/20 bg-blue-500/10 transition-all duration-300 no-app-drag hover:bg-blue-500/20 starting:opacity-0"
+              className="pointer-events-auto relative flex h-6 w-6 items-center justify-center rounded border border-blue-500/20 bg-blue-500/10 transition-all duration-300 hover:bg-blue-500/20 starting:opacity-0"
               type="button"
               onClick={handleEdit}
             >
