@@ -4,6 +4,7 @@ import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
+import { markMenuNeedsUpdate } from '@/tray';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
 declare const PROMPT_VITE_NAME: string | undefined;
@@ -15,6 +16,16 @@ export async function createPromptWindow(
   conversation: Conversation,
 ): Promise<void> {
   const logger = useLogger('PromptWindow');
+
+  markMenuNeedsUpdate();
+
+  // If window exists with same conversation, just show it
+  if (promptWindow !== null && currentConversation?.id === conversation.id) {
+    showPromptWindow();
+    return;
+  }
+
+  // If window exists with different conversation, destroy it
   if (promptWindow !== null) {
     promptWindow.destroy();
   }
@@ -82,14 +93,27 @@ export async function createPromptWindow(
   }
 
   promptWindow.on('blur', () => {
-    if (process.env.NODE_ENV !== 'development') {
-      promptWindow?.close();
-    }
+    promptWindow?.hide();
+    markMenuNeedsUpdate();
   });
   promptWindow.on('closed', () => {
     promptWindow = null;
     currentConversation = null;
   });
+}
+
+export function showPromptWindow(): void {
+  if (promptWindow !== null) {
+    promptWindow.show();
+    promptWindow.focus();
+    void promptWindow.webContents.executeJavaScript(
+      `document.getElementById('message-input')?.focus()`,
+    );
+  }
+}
+
+export function hasPromptWindow(): boolean {
+  return promptWindow !== null;
 }
 
 export function setupPromptWindowIPC(): void {

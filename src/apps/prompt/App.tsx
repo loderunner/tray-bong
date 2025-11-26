@@ -411,6 +411,7 @@ export default function App({ initialData }: Props) {
         <div className="flex gap-2">
           <textarea
             ref={inputRef}
+            autoFocus
             className={twMerge(
               'max-h-60 flex-1 resize-none overflow-y-auto rounded-3xl border bg-white/5 px-4 py-3 text-[0.95rem] transition-[border-color] duration-200 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50',
               editingMessageId !== null
@@ -418,6 +419,7 @@ export default function App({ initialData }: Props) {
                 : 'border-white/20',
             )}
             disabled={status === 'streaming' || status === 'submitted'}
+            id="message-input"
             placeholder="Type your message..."
             rows={input.split('\n').length}
             value={input}

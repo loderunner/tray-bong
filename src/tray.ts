@@ -1,7 +1,11 @@
 import { Menu, Tray, nativeImage } from 'electron';
 
 import { createConversationsWindow } from './apps/conversations/main';
-import { createPromptWindow } from './apps/prompt/main';
+import {
+  createPromptWindow,
+  hasPromptWindow,
+  showPromptWindow,
+} from './apps/prompt/main';
 import { createSettingsWindow } from './apps/settings/main';
 import {
   type Conversation,
@@ -61,9 +65,21 @@ export async function updateTrayMenu(): Promise<void> {
   // Reset state
   needsUpdate = false;
 
+  const menuItems: Electron.MenuItemConstructorOptions[] = [];
+
+  if (hasPromptWindow()) {
+    menuItems.push({
+      label: 'Resume conversation',
+      click: () => {
+        showPromptWindow();
+      },
+    });
+    menuItems.push({ type: 'separator' });
+  }
+
   const prompts = await loadPrompts();
 
-  const menuItems: Electron.MenuItemConstructorOptions[] = prompts.map(
+  const promptItems: Electron.MenuItemConstructorOptions[] = prompts.map(
     (prompt) => ({
       label: prompt.label,
       click: async () => {
@@ -75,6 +91,8 @@ export async function updateTrayMenu(): Promise<void> {
       },
     }),
   );
+
+  menuItems.push(...promptItems);
 
   if (prompts.length > 0) {
     menuItems.push({ type: 'separator' });
