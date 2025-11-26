@@ -3,7 +3,7 @@ import path from 'node:path';
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
-import { saveConversation } from '@/services/conversations/main';
+import { updateConversationWindowBounds } from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
 import { markMenuNeedsUpdate } from '@/tray';
 
@@ -122,12 +122,6 @@ export async function createPromptWindow(
     // Save bounds when window closes
     if (promptWindow !== null && currentConversation !== null) {
       const bounds = promptWindow.getBounds();
-      currentConversation.windowBounds = {
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
-      };
       // Update last window bounds in memory
       lastWindowBounds = {
         x: bounds.x,
@@ -135,7 +129,8 @@ export async function createPromptWindow(
         width: bounds.width,
         height: bounds.height,
       };
-      void saveConversation(currentConversation);
+      // Update bounds separately without needing the full conversation object
+      void updateConversationWindowBounds(currentConversation.id, bounds);
     }
     promptWindow = null;
     currentConversation = null;
