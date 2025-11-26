@@ -1,10 +1,9 @@
 import { ipcMain } from 'electron';
 
 import {
-  type Provider,
   type ProviderSettings,
+  loadAllSettings,
   loadSettings,
-  loadSettingsForProvider,
   saveSettings,
 } from './main';
 
@@ -17,8 +16,8 @@ export function setupSettingsIPC(): void {
     return await loadSettings();
   });
 
-  ipcMain.handle('settings:getForProvider', async (_event, provider: Provider) => {
-    return await loadSettingsForProvider(provider);
+  ipcMain.handle('settings:getAll', async () => {
+    return await loadAllSettings();
   });
 
   ipcMain.handle(

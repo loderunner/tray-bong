@@ -128,13 +128,14 @@ export default function App() {
                 ollamaEndpoint: provider === 'ollama' ? ollamaEndpoint : undefined,
               });
               
+              // Load all settings and get the new provider's settings
+              const allSettings = await Settings.getAllSettings();
+              const savedSettings = allSettings[newProvider];
+              
               // Switch to new provider
               setProvider(newProvider);
               const providerModels = Settings.PROVIDER_MODELS[newProvider];
               setModels(providerModels);
-              
-              // Load saved settings for this provider
-              const savedSettings = await Settings.getSettingsForProvider(newProvider);
               setModel(savedSettings.model);
               setApiKey(savedSettings.apiKey);
               setOriginalApiKey(savedSettings.apiKey);

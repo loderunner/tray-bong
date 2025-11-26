@@ -1,10 +1,15 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import {
-  PROVIDER_MODELS,
-  type Provider,
-  type ProviderSettings,
-} from './main';
+import { PROVIDER_MODELS, type ProviderSettings } from './main';
+
+type SettingsFile = {
+  version: number;
+  currentProvider: 'openai' | 'anthropic' | 'google' | 'ollama';
+  openai: { model: string; apiKey: string; ollamaEndpoint?: string };
+  anthropic: { model: string; apiKey: string; ollamaEndpoint?: string };
+  google: { model: string; apiKey: string; ollamaEndpoint?: string };
+  ollama: { model: string; apiKey: string; ollamaEndpoint?: string };
+};
 
 /**
  * Exposes settings API to the renderer process via context bridge.
@@ -14,10 +19,8 @@ export function exposeSettings(): void {
     getSettings: (): Promise<ProviderSettings> => {
       return ipcRenderer.invoke('settings:get');
     },
-    getSettingsForProvider: (
-      provider: Provider,
-    ): Promise<Omit<ProviderSettings, 'provider'>> => {
-      return ipcRenderer.invoke('settings:getForProvider', provider);
+    getAllSettings: (): Promise<SettingsFile> => {
+      return ipcRenderer.invoke('settings:getAll');
     },
     saveSettings: (settings: ProviderSettings): Promise<void> => {
       return ipcRenderer.invoke('settings:save', settings);
