@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 
 import type { ConversationMetadata } from "@/services/conversations/main";
 
-function formatDate(timestamp: number): string {
+function formatDate(date: Date): string {
   const now = Date.now();
+  const timestamp = date.getTime();
   const diff = now - timestamp;
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);

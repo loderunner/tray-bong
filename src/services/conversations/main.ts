@@ -36,8 +36,8 @@ const UIMessagesSchema = z.array(z.looseObject({})).pipe(
 
 const ConversationSchema = z.object({
   id: z.string(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
+  createdAt: z.string().datetime().transform((str) => new Date(str)),
+  updatedAt: z.string().datetime().transform((str) => new Date(str)),
   title: z.string(),
   messages: UIMessagesSchema,
 });
@@ -49,6 +49,14 @@ const ConversationFileSchema = z.object({
 });
 type ConversationFile = z.infer<typeof ConversationFileSchema>;
 
+type ConversationFileSerialized = {
+  version: typeof CURRENT_VERSION;
+  conversation: Omit<z.input<typeof ConversationSchema>, 'createdAt' | 'updatedAt'> & {
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
 export function getConversationsDirectory(): string {
   return path.join(app.getPath('userData'), 'userData', 'conversations');
 }
@@ -57,7 +65,9 @@ function getConversationFilePath(id: string): string {
   return path.join(getConversationsDirectory(), `${id}.json`);
 }
 
-async function migrateConversation(data: unknown): Promise<ConversationFile> {
+async function migrateConversation(
+  data: unknown,
+): Promise<ConversationFile> {
   if (typeof data !== 'object' || data === null) {
     throw new Error('Invalid conversation file format');
   }
@@ -88,11 +98,12 @@ export async function saveConversation(
 
   await fs.mkdir(directory, { recursive: true });
 
-  const file: ConversationFile = {
+  const file: ConversationFileSerialized = {
     version: CURRENT_VERSION,
     conversation: {
       ...conversation,
-      updatedAt: Date.now(),
+      createdAt: conversation.createdAt.toISOString(),
+      updatedAt: new Date().toISOString(),
     },
   };
 
@@ -116,8 +127,8 @@ export async function loadConversation(id: string): Promise<Conversation> {
 
 export type ConversationMetadata = {
   id: string;
-  createdAt: number;
-  updatedAt: number;
+  createdAt: Date;
+  updatedAt: Date;
   title: string;
 };
 
