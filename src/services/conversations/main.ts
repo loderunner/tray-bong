@@ -34,12 +34,20 @@ const UIMessagesSchema = z.array(z.looseObject({})).pipe(
   }),
 );
 
+const WindowBoundsSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
+
 const ConversationSchema = z.object({
   id: z.string(),
   createdAt: z.number(),
   updatedAt: z.number(),
   title: z.string(),
   messages: UIMessagesSchema,
+  windowBounds: WindowBoundsSchema.optional(),
 });
 export type Conversation = z.infer<typeof ConversationSchema>;
 
@@ -176,4 +184,42 @@ export async function listConversations(
 
 export function createConversationId(): string {
   return uuidv7();
+}
+
+export async function updateConversationWindowBounds(
+  id: string,
+  bounds: { x: number; y: number; width: number; height: number },
+): Promise<void> {
+  try {
+    const conversation = await loadConversation(id);
+    conversation.windowBounds = bounds;
+    await saveConversation(conversation);
+  } catch (error) {
+    // Conversation file doesn't exist yet (new conversation not saved), skip saving bounds
+    // The bounds will be saved when the conversation is first saved from the renderer
+    const logger = useLogger('Conversations');
+    logger.debug(
+      `Cannot save window bounds for conversation ${id}: conversation not yet saved`,
+    );
+  }
+}
+
+export async function getLastConversationWindowSize(): Promise<{
+  width: number;
+  height: number;
+} | null> {
+  const conversations = await listConversations(1, 0);
+  if (conversations.length === 0) {
+    return null;
+  }
+
+  const conversation = await loadConversation(conversations[0].id);
+  if (conversation.windowBounds === undefined) {
+    return null;
+  }
+
+  return {
+    width: conversation.windowBounds.width,
+    height: conversation.windowBounds.height,
+  };
 }

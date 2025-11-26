@@ -1,6 +1,11 @@
 import { ipcMain } from 'electron';
 
-import { type Conversation, listConversations, saveConversation } from './main';
+import {
+  type Conversation,
+  listConversations,
+  saveConversation,
+  updateConversationWindowBounds,
+} from './main';
 
 /**
  * Sets up IPC handlers for conversations service.
@@ -18,6 +23,17 @@ export function setupConversationsIPC(): void {
     'conversations:list',
     async (_event, limit: number, offset: number) => {
       return await listConversations(limit, offset);
+    },
+  );
+
+  ipcMain.handle(
+    'conversations:update-window-bounds',
+    async (
+      _event,
+      id: string,
+      bounds: { x: number; y: number; width: number; height: number },
+    ) => {
+      await updateConversationWindowBounds(id, bounds);
     },
   );
 }

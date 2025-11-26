@@ -3,6 +3,10 @@ import path from 'node:path';
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
+import {
+  getLastConversationWindowSize,
+  updateConversationWindowBounds,
+} from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
 import { markMenuNeedsUpdate } from '@/tray';
 
@@ -34,9 +38,23 @@ export async function createPromptWindow(
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
+  // Determine window bounds: use conversation's saved bounds, or last conversation size, or default
+  let windowBounds: { x?: number; y?: number; width: number; height: number };
+  if (conversation.windowBounds !== undefined) {
+    windowBounds = conversation.windowBounds;
+  } else {
+    const lastSize = await getLastConversationWindowSize();
+    windowBounds = {
+      width: lastSize?.width ?? 800,
+      height: lastSize?.height ?? 600,
+    };
+  }
+
   promptWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: windowBounds.width,
+    height: windowBounds.height,
+    x: windowBounds.x,
+    y: windowBounds.y,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -92,11 +110,48 @@ export async function createPromptWindow(
     void promptWindow.loadFile(htmlPath);
   }
 
+  // Save window bounds when window moves or resizes
+  const saveWindowBounds = () => {
+    if (promptWindow === null || currentConversation === null) {
+      return;
+    }
+    const bounds = promptWindow.getBounds();
+    void updateConversationWindowBounds(currentConversation.id, {
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    });
+  };
+
+  // Debounce saves to avoid excessive writes
+  let saveBoundsTimeout: NodeJS.Timeout | null = null;
+  const debouncedSaveWindowBounds = () => {
+    if (saveBoundsTimeout !== null) {
+      clearTimeout(saveBoundsTimeout);
+    }
+    saveBoundsTimeout = setTimeout(() => {
+      saveWindowBounds();
+      saveBoundsTimeout = null;
+    }, 500);
+  };
+
+  // Save initial bounds
+  saveWindowBounds();
+
+  promptWindow.on('move', debouncedSaveWindowBounds);
+  promptWindow.on('resize', debouncedSaveWindowBounds);
+
   promptWindow.on('blur', () => {
     promptWindow?.hide();
     markMenuNeedsUpdate();
   });
   promptWindow.on('closed', () => {
+    // Save bounds one final time before closing
+    if (saveBoundsTimeout !== null) {
+      clearTimeout(saveBoundsTimeout);
+    }
+    saveWindowBounds();
     promptWindow = null;
     currentConversation = null;
   });
