@@ -90,7 +90,7 @@ export async function saveConversation(
 
   await fs.mkdir(directory, { recursive: true });
 
-  const file = {
+  const file: ConversationFile = {
     version: CURRENT_VERSION,
     conversation: {
       ...conversation,
