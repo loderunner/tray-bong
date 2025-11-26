@@ -37,12 +37,19 @@ export const PROVIDER_MODELS: Record<Provider, ModelInfo[]> = {
   ollama: [],
 };
 
-const SettingsFileSchema = z.object({
-  version: z.number(),
-  provider: z.enum(['openai', 'anthropic', 'google', 'ollama']),
+const ProviderSettingsSchema = z.object({
   model: z.string(),
   apiKey: z.string(), // encrypted
   ollamaEndpoint: z.string().optional(),
+});
+
+const SettingsFileSchema = z.object({
+  version: z.number(),
+  currentProvider: z.enum(['openai', 'anthropic', 'google', 'ollama']),
+  providers: z.record(
+    z.enum(['openai', 'anthropic', 'google', 'ollama']),
+    ProviderSettingsSchema,
+  ),
 });
 type SettingsFile = z.infer<typeof SettingsFileSchema>;
 
@@ -57,13 +64,28 @@ export function getSettingsFilePath(): string {
   return path.join(app.getPath('userData'), 'userData', 'settings.json');
 }
 
+function getDefaultProviderSettings(
+  provider: Provider,
+): z.infer<typeof ProviderSettingsSchema> {
+  const models = PROVIDER_MODELS[provider];
+  const defaultModel = models.length > 0 ? models[0].id : '';
+  return {
+    model: defaultModel,
+    apiKey: encryptAPIKey(''),
+    ollamaEndpoint: provider === 'ollama' ? 'http://localhost:11434' : undefined,
+  };
+}
+
 function getDefaultSettings(): SettingsFile {
   return {
     version: CURRENT_VERSION,
-    provider: 'anthropic',
-    model: PROVIDER_MODELS.anthropic[0].id,
-    apiKey: encryptAPIKey(''),
-    ollamaEndpoint: 'http://localhost:11434',
+    currentProvider: 'anthropic',
+    providers: {
+      anthropic: getDefaultProviderSettings('anthropic'),
+      openai: getDefaultProviderSettings('openai'),
+      google: getDefaultProviderSettings('google'),
+      ollama: getDefaultProviderSettings('ollama'),
+    },
   };
 }
 
@@ -102,28 +124,46 @@ function migrateSettings(data: unknown): SettingsFile {
     throw new Error(`Unsupported settings file version: ${version}`);
   }
 
-  if (version < CURRENT_VERSION) {
-    // Future migrations would go here
-    // For now, if version is less than current, do nothing
+  // Migrate from old format (single provider) to new format (per-provider)
+  if (
+    version < CURRENT_VERSION ||
+    ('provider' in data && !('currentProvider' in data))
+  ) {
+    const oldData = data as {
+      provider?: Provider;
+      model?: string;
+      apiKey?: string;
+      ollamaEndpoint?: string;
+    };
+      const provider = oldData.provider ?? 'anthropic';
+      const defaultSettings = getDefaultSettings();
+      const defaultProviderSettings = getDefaultProviderSettings(provider);
+      return {
+        version: CURRENT_VERSION,
+        currentProvider: provider,
+        providers: {
+          ...defaultSettings.providers,
+          [provider]: {
+            model: oldData.model ?? defaultProviderSettings.model,
+            apiKey: oldData.apiKey ?? defaultProviderSettings.apiKey,
+            ollamaEndpoint:
+              oldData.ollamaEndpoint ?? defaultProviderSettings.ollamaEndpoint,
+          },
+        },
+      };
   }
 
   return SettingsFileSchema.parse(data);
 }
 
-export async function loadSettings(): Promise<ProviderSettings> {
+async function loadSettingsFile(): Promise<SettingsFile> {
   const filePath = getSettingsFilePath();
   const logger = useLogger('Settings');
 
   try {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const parsed: unknown = JSON.parse(fileContent);
-    const migrated = migrateSettings(parsed);
-    return {
-      provider: migrated.provider,
-      model: migrated.model,
-      apiKey: decryptAPIKey(migrated.apiKey),
-      ollamaEndpoint: migrated.ollamaEndpoint,
-    };
+    return migrateSettings(parsed);
   } catch (error) {
     // If validation or migration fails, recreate default file
     logger.error(
@@ -131,24 +171,65 @@ export async function loadSettings(): Promise<ProviderSettings> {
     );
     const defaultSettings = getDefaultSettings();
     await fs.writeFile(filePath, JSON.stringify(defaultSettings, null, 2));
-    return {
-      provider: defaultSettings.provider,
-      model: defaultSettings.model,
-      apiKey: decryptAPIKey(defaultSettings.apiKey),
-      ollamaEndpoint: defaultSettings.ollamaEndpoint,
-    };
+    return defaultSettings;
   }
+}
+
+export async function loadSettings(): Promise<ProviderSettings> {
+  const settingsFile = await loadSettingsFile();
+  const currentProviderSettings =
+    settingsFile.providers[settingsFile.currentProvider] ??
+    getDefaultProviderSettings(settingsFile.currentProvider);
+  return {
+    provider: settingsFile.currentProvider,
+    model: currentProviderSettings.model,
+    apiKey: decryptAPIKey(currentProviderSettings.apiKey),
+    ollamaEndpoint: currentProviderSettings.ollamaEndpoint,
+  };
+}
+
+export async function loadSettingsForProvider(
+  provider: Provider,
+): Promise<Omit<ProviderSettings, 'provider'>> {
+  const settingsFile = await loadSettingsFile();
+  const providerSettings =
+    settingsFile.providers[provider] ?? getDefaultProviderSettings(provider);
+  return {
+    model: providerSettings.model,
+    apiKey: decryptAPIKey(providerSettings.apiKey),
+    ollamaEndpoint: providerSettings.ollamaEndpoint,
+  };
 }
 
 export async function saveSettings(settings: ProviderSettings): Promise<void> {
   const filePath = getSettingsFilePath();
+  const logger = useLogger('Settings');
+
+  // Load existing settings to preserve other providers
+  let existingSettings: SettingsFile;
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const parsed: unknown = JSON.parse(fileContent);
+    existingSettings = migrateSettings(parsed);
+  } catch {
+    // If loading fails, use defaults
+    existingSettings = getDefaultSettings();
+  }
+
+  // Update the current provider's settings
   const encryptedApiKey = encryptAPIKey(settings.apiKey);
-  const settingsFile: SettingsFile = {
+  const updatedSettings: SettingsFile = {
     version: CURRENT_VERSION,
-    provider: settings.provider,
-    model: settings.model,
-    apiKey: encryptedApiKey,
-    ollamaEndpoint: settings.ollamaEndpoint,
+    currentProvider: settings.provider,
+    providers: {
+      ...existingSettings.providers,
+      [settings.provider]: {
+        model: settings.model,
+        apiKey: encryptedApiKey,
+        ollamaEndpoint: settings.ollamaEndpoint,
+      },
+    },
   };
-  await fs.writeFile(filePath, JSON.stringify(settingsFile, null, 2));
+
+  await fs.writeFile(filePath, JSON.stringify(updatedSettings, null, 2));
 }

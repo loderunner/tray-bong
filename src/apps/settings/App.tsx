@@ -116,18 +116,41 @@ export default function App() {
             className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             id="provider"
             value={provider}
-            onChange={(e) => {
+            onChange={async (e) => {
               const newProvider = e.target.value as Provider;
+              
+              // Save current provider's settings before switching (to preserve any changes)
+              const keyToSave = apiKeyEdited ? apiKey : originalApiKey;
+              await Settings.saveSettings({
+                provider,
+                model,
+                apiKey: keyToSave,
+                ollamaEndpoint: provider === 'ollama' ? ollamaEndpoint : undefined,
+              });
+              
+              // Switch to new provider
               setProvider(newProvider);
               const providerModels = Settings.PROVIDER_MODELS[newProvider];
               setModels(providerModels);
-              // Default to first model when switching provider
-              if (providerModels.length > 0) {
-                setModel(providerModels[0].id);
-              } else {
-                // Ollama - allow free text input
-                setModel('');
-              }
+              
+              // Load saved settings for this provider
+              const savedSettings = await Settings.getSettingsForProvider(newProvider);
+              setModel(savedSettings.model);
+              setApiKey(savedSettings.apiKey);
+              setOriginalApiKey(savedSettings.apiKey);
+              setApiKeyEdited(false);
+              setApiKeyFocused(false);
+              setOllamaEndpoint(
+                savedSettings.ollamaEndpoint ?? 'http://localhost:11434',
+              );
+              
+              // Save the provider switch
+              await Settings.saveSettings({
+                provider: newProvider,
+                model: savedSettings.model,
+                apiKey: savedSettings.apiKey,
+                ollamaEndpoint: savedSettings.ollamaEndpoint,
+              });
             }}
           >
             <option value="openai">OpenAI</option>
