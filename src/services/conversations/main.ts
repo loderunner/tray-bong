@@ -36,8 +36,8 @@ const UIMessagesSchema = z.array(z.looseObject({})).pipe(
 
 const ConversationSchema = z.object({
   id: z.string(),
-  createdAt: z.isoDateTime(),
-  updatedAt: z.isoDateTime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
   title: z.string(),
   messages: UIMessagesSchema,
 });
