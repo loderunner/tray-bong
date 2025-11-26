@@ -5,7 +5,7 @@ import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 import type { Conversation } from '@/services/conversations/main';
 import {
   getLastConversationWindowSize,
-  updateConversationWindowBounds,
+  saveConversation,
 } from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
 import { markMenuNeedsUpdate } from '@/tray';
@@ -116,12 +116,13 @@ export async function createPromptWindow(
       return;
     }
     const bounds = promptWindow.getBounds();
-    void updateConversationWindowBounds(currentConversation.id, {
+    currentConversation.windowBounds = {
       x: bounds.x,
       y: bounds.y,
       width: bounds.width,
       height: bounds.height,
-    });
+    };
+    void saveConversation(currentConversation);
   };
 
   // Debounce saves to avoid excessive writes

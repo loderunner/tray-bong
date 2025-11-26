@@ -186,24 +186,6 @@ export function createConversationId(): string {
   return uuidv7();
 }
 
-export async function updateConversationWindowBounds(
-  id: string,
-  bounds: { x: number; y: number; width: number; height: number },
-): Promise<void> {
-  try {
-    const conversation = await loadConversation(id);
-    conversation.windowBounds = bounds;
-    await saveConversation(conversation);
-  } catch (error) {
-    // Conversation file doesn't exist yet (new conversation not saved), skip saving bounds
-    // The bounds will be saved when the conversation is first saved from the renderer
-    const logger = useLogger('Conversations');
-    logger.debug(
-      `Cannot save window bounds for conversation ${id}: conversation not yet saved`,
-    );
-  }
-}
-
 export async function getLastConversationWindowSize(): Promise<{
   width: number;
   height: number;
