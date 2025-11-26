@@ -12,7 +12,12 @@ declare const PROMPT_VITE_NAME: string | undefined;
 
 let promptWindow: BrowserWindow | null = null;
 let currentConversation: Conversation | null = null;
-let lastWindowSize: { width: number; height: number } | null = null;
+let lastWindowBounds: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} | null = null;
 
 export async function createPromptWindow(
   conversation: Conversation,
@@ -36,14 +41,16 @@ export async function createPromptWindow(
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
-  // Determine window bounds: use conversation's saved bounds, or last window size, or default
+  // Determine window bounds: use conversation's saved bounds, or last window bounds, or default
   let windowBounds: { x?: number; y?: number; width: number; height: number };
   if (conversation.windowBounds !== undefined) {
     windowBounds = conversation.windowBounds;
+  } else if (lastWindowBounds !== null) {
+    windowBounds = lastWindowBounds;
   } else {
     windowBounds = {
-      width: lastWindowSize?.width ?? 800,
-      height: lastWindowSize?.height ?? 600,
+      width: 800,
+      height: 600,
     };
   }
 
@@ -121,8 +128,10 @@ export async function createPromptWindow(
         width: bounds.width,
         height: bounds.height,
       };
-      // Update last window size in memory
-      lastWindowSize = {
+      // Update last window bounds in memory
+      lastWindowBounds = {
+        x: bounds.x,
+        y: bounds.y,
         width: bounds.width,
         height: bounds.height,
       };
@@ -150,7 +159,7 @@ export function hasPromptWindow(): boolean {
 /**
  * Gets the current window bounds for a conversation if its window is open.
  * Returns null if the conversation window is not open or doesn't match the given ID.
- * Also updates the last window size in memory.
+ * Also updates the last window bounds in memory.
  */
 export function getConversationWindowBounds(
   conversationId: string,
