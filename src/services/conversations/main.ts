@@ -36,8 +36,8 @@ const UIMessagesSchema = z.array(z.looseObject({})).pipe(
 
 const ConversationSchema = z.object({
   id: z.string(),
-  createdAt: z.number(),
-  updatedAt: z.number(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
   title: z.string(),
   messages: UIMessagesSchema,
 });
@@ -57,7 +57,9 @@ function getConversationFilePath(id: string): string {
   return path.join(getConversationsDirectory(), `${id}.json`);
 }
 
-async function migrateConversation(data: unknown): Promise<ConversationFile> {
+async function migrateConversation(
+  data: unknown,
+): Promise<ConversationFile> {
   if (typeof data !== 'object' || data === null) {
     throw new Error('Invalid conversation file format');
   }
@@ -92,7 +94,7 @@ export async function saveConversation(
     version: CURRENT_VERSION,
     conversation: {
       ...conversation,
-      updatedAt: Date.now(),
+      updatedAt: new Date(),
     },
   };
 
@@ -116,8 +118,8 @@ export async function loadConversation(id: string): Promise<Conversation> {
 
 export type ConversationMetadata = {
   id: string;
-  createdAt: number;
-  updatedAt: number;
+  createdAt: Date;
+  updatedAt: Date;
   title: string;
 };
 

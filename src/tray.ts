@@ -154,7 +154,7 @@ function createEmptyConversation(
   label: string,
 ): Conversation {
   const id = createConversationId();
-  const now = Date.now();
+  const now = new Date();
   const messages =
     systemPrompt.trim() !== ''
       ? [
