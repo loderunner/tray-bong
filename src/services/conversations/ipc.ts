@@ -1,12 +1,7 @@
 import { ipcMain } from 'electron';
 
 import { getConversationWindowBounds } from '@/apps/prompt/main';
-import {
-  type Conversation,
-  listConversations,
-  saveConversation,
-  updateConversationWindowBounds,
-} from './main';
+import { type Conversation, listConversations, saveConversation } from './main';
 
 /**
  * Sets up IPC handlers for conversations service.
@@ -20,8 +15,6 @@ export function setupConversationsIPC(): void {
       const bounds = getConversationWindowBounds(conversation.id);
       if (bounds !== null) {
         conversation.windowBounds = bounds;
-        // Also update bounds separately to ensure they're saved even if conversation save fails
-        void updateConversationWindowBounds(conversation.id, bounds);
       }
       await saveConversation(conversation);
     },
