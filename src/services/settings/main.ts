@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 import { useLogger } from '@/services/logger/useLogger';
 
-const CURRENT_VERSION = 1;
+const CURRENT_VERSION = 2;
 
 export type Provider = 'openai' | 'anthropic' | 'google' | 'ollama';
 
@@ -37,14 +37,31 @@ export const PROVIDER_MODELS: Record<Provider, ModelInfo[]> = {
   ollama: [],
 };
 
-const SettingsFileSchema = z.object({
-  version: z.number(),
+const ProviderSettingsSchema = z.object({
+  model: z.string(),
+  apiKey: z.string(), // encrypted
+  ollamaEndpoint: z.string().optional(),
+});
+
+const SettingsFileSchemaV2 = z.object({
+  version: z.literal(2),
+  currentProvider: z.enum(['openai', 'anthropic', 'google', 'ollama']),
+  providers: z.record(
+    z.enum(['openai', 'anthropic', 'google', 'ollama']),
+    ProviderSettingsSchema,
+  ),
+});
+
+const SettingsFileSchemaV1 = z.object({
+  version: z.literal(1),
   provider: z.enum(['openai', 'anthropic', 'google', 'ollama']),
   model: z.string(),
   apiKey: z.string(), // encrypted
   ollamaEndpoint: z.string().optional(),
 });
-type SettingsFile = z.infer<typeof SettingsFileSchema>;
+
+type SettingsFileV2 = z.infer<typeof SettingsFileSchemaV2>;
+type SettingsFileV1 = z.infer<typeof SettingsFileSchemaV1>;
 
 export type ProviderSettings = {
   provider: Provider;
@@ -57,13 +74,27 @@ export function getSettingsFilePath(): string {
   return path.join(app.getPath('userData'), 'userData', 'settings.json');
 }
 
-function getDefaultSettings(): SettingsFile {
+function getDefaultProviderSettings(provider: Provider): {
+  model: string;
+  apiKey: string;
+  ollamaEndpoint?: string;
+} {
+  const models = PROVIDER_MODELS[provider];
   return {
-    version: CURRENT_VERSION,
-    provider: 'anthropic',
-    model: PROVIDER_MODELS.anthropic[0].id,
+    model: models.length > 0 ? models[0].id : '',
     apiKey: encryptAPIKey(''),
-    ollamaEndpoint: 'http://localhost:11434',
+    ollamaEndpoint: provider === 'ollama' ? 'http://localhost:11434' : undefined,
+  };
+}
+
+function getDefaultSettings(): SettingsFileV2 {
+  const defaultProvider: Provider = 'anthropic';
+  return {
+    version: 2,
+    currentProvider: defaultProvider,
+    providers: {
+      [defaultProvider]: getDefaultProviderSettings(defaultProvider),
+    },
   };
 }
 
@@ -90,7 +121,7 @@ function decryptAPIKey(storedAPIKey: string): string {
   }
 }
 
-function migrateSettings(data: unknown): SettingsFile {
+function migrateSettings(data: unknown): SettingsFileV2 {
   if (typeof data !== 'object' || data === null) {
     throw new Error('Invalid settings file format');
   }
@@ -102,12 +133,28 @@ function migrateSettings(data: unknown): SettingsFile {
     throw new Error(`Unsupported settings file version: ${version}`);
   }
 
-  if (version < CURRENT_VERSION) {
-    // Future migrations would go here
-    // For now, if version is less than current, do nothing
+  if (version === 1) {
+    // Migrate from v1 (single provider) to v2 (per-provider)
+    const v1Data = SettingsFileSchemaV1.parse(data);
+    return {
+      version: 2,
+      currentProvider: v1Data.provider,
+      providers: {
+        [v1Data.provider]: {
+          model: v1Data.model,
+          apiKey: v1Data.apiKey,
+          ollamaEndpoint: v1Data.ollamaEndpoint,
+        },
+      },
+    };
   }
 
-  return SettingsFileSchema.parse(data);
+  if (version === 2) {
+    return SettingsFileSchemaV2.parse(data);
+  }
+
+  // If version is 0 or unknown, return default
+  return getDefaultSettings();
 }
 
 export async function loadSettings(): Promise<ProviderSettings> {
@@ -118,11 +165,26 @@ export async function loadSettings(): Promise<ProviderSettings> {
     const fileContent = await fs.readFile(filePath, 'utf-8');
     const parsed: unknown = JSON.parse(fileContent);
     const migrated = migrateSettings(parsed);
+    
+    const providerSettings = migrated.providers[migrated.currentProvider];
+    if (!providerSettings) {
+      // Provider settings missing, use defaults
+      const defaultSettings = getDefaultProviderSettings(migrated.currentProvider);
+      migrated.providers[migrated.currentProvider] = defaultSettings;
+      await fs.writeFile(filePath, JSON.stringify(migrated, null, 2));
+      return {
+        provider: migrated.currentProvider,
+        model: defaultSettings.model,
+        apiKey: decryptAPIKey(defaultSettings.apiKey),
+        ollamaEndpoint: defaultSettings.ollamaEndpoint,
+      };
+    }
+
     return {
-      provider: migrated.provider,
-      model: migrated.model,
-      apiKey: decryptAPIKey(migrated.apiKey),
-      ollamaEndpoint: migrated.ollamaEndpoint,
+      provider: migrated.currentProvider,
+      model: providerSettings.model,
+      apiKey: decryptAPIKey(providerSettings.apiKey),
+      ollamaEndpoint: providerSettings.ollamaEndpoint,
     };
   } catch (error) {
     // If validation or migration fails, recreate default file
@@ -131,24 +193,81 @@ export async function loadSettings(): Promise<ProviderSettings> {
     );
     const defaultSettings = getDefaultSettings();
     await fs.writeFile(filePath, JSON.stringify(defaultSettings, null, 2));
+    const providerSettings = defaultSettings.providers[defaultSettings.currentProvider];
     return {
-      provider: defaultSettings.provider,
-      model: defaultSettings.model,
-      apiKey: decryptAPIKey(defaultSettings.apiKey),
-      ollamaEndpoint: defaultSettings.ollamaEndpoint,
+      provider: defaultSettings.currentProvider,
+      model: providerSettings.model,
+      apiKey: decryptAPIKey(providerSettings.apiKey),
+      ollamaEndpoint: providerSettings.ollamaEndpoint,
     };
   }
 }
 
+/**
+ * Loads settings for a specific provider.
+ * If settings don't exist for the provider, returns defaults.
+ *
+ * @param provider - The provider to load settings for
+ * @returns Settings for the specified provider
+ */
+export async function loadProviderSettings(
+  provider: Provider,
+): Promise<Omit<ProviderSettings, 'provider'>> {
+  const filePath = getSettingsFilePath();
+  const logger = useLogger('Settings');
+
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const parsed: unknown = JSON.parse(fileContent);
+    const migrated = migrateSettings(parsed);
+
+    const providerSettings = migrated.providers[provider];
+    if (providerSettings) {
+      return {
+        model: providerSettings.model,
+        apiKey: decryptAPIKey(providerSettings.apiKey),
+        ollamaEndpoint: providerSettings.ollamaEndpoint,
+      };
+    }
+  } catch (error) {
+    logger.debug(
+      `Failed to load provider settings: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  // Return defaults if settings don't exist
+  const defaults = getDefaultProviderSettings(provider);
+  return {
+    model: defaults.model,
+    apiKey: decryptAPIKey(defaults.apiKey),
+    ollamaEndpoint: defaults.ollamaEndpoint,
+  };
+}
+
 export async function saveSettings(settings: ProviderSettings): Promise<void> {
   const filePath = getSettingsFilePath();
+  const logger = useLogger('Settings');
+
+  let currentFile: SettingsFileV2;
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const parsed: unknown = JSON.parse(fileContent);
+    currentFile = migrateSettings(parsed);
+  } catch {
+    // If file doesn't exist or is invalid, start with defaults
+    currentFile = getDefaultSettings();
+  }
+
+  // Update or create settings for this provider
   const encryptedApiKey = encryptAPIKey(settings.apiKey);
-  const settingsFile: SettingsFile = {
-    version: CURRENT_VERSION,
-    provider: settings.provider,
+  currentFile.providers[settings.provider] = {
     model: settings.model,
     apiKey: encryptedApiKey,
     ollamaEndpoint: settings.ollamaEndpoint,
   };
-  await fs.writeFile(filePath, JSON.stringify(settingsFile, null, 2));
+  
+  // Update current provider
+  currentFile.currentProvider = settings.provider;
+
+  await fs.writeFile(filePath, JSON.stringify(currentFile, null, 2));
 }
