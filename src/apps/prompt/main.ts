@@ -167,8 +167,10 @@ export function getConversationWindowBounds(
     return null;
   }
   const bounds = promptWindow.getBounds();
-  // Update last window size in memory
-  lastWindowSize = {
+  // Update last window bounds in memory
+  lastWindowBounds = {
+    x: bounds.x,
+    y: bounds.y,
     width: bounds.width,
     height: bounds.height,
   };
