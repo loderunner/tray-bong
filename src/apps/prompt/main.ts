@@ -3,10 +3,7 @@ import path from 'node:path';
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
-import {
-  getLastConversationWindowSize,
-  saveConversation,
-} from '@/services/conversations/main';
+import { saveConversation } from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
 import { markMenuNeedsUpdate } from '@/tray';
 
@@ -15,6 +12,7 @@ declare const PROMPT_VITE_NAME: string | undefined;
 
 let promptWindow: BrowserWindow | null = null;
 let currentConversation: Conversation | null = null;
+let lastWindowSize: { width: number; height: number } | null = null;
 
 export async function createPromptWindow(
   conversation: Conversation,
@@ -38,15 +36,14 @@ export async function createPromptWindow(
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
-  // Determine window bounds: use conversation's saved bounds, or last conversation size, or default
+  // Determine window bounds: use conversation's saved bounds, or last window size, or default
   let windowBounds: { x?: number; y?: number; width: number; height: number };
   if (conversation.windowBounds !== undefined) {
     windowBounds = conversation.windowBounds;
   } else {
-    const lastSize = await getLastConversationWindowSize();
     windowBounds = {
-      width: lastSize?.width ?? 800,
-      height: lastSize?.height ?? 600,
+      width: lastWindowSize?.width ?? 800,
+      height: lastWindowSize?.height ?? 600,
     };
   }
 
@@ -124,6 +121,11 @@ export async function createPromptWindow(
         width: bounds.width,
         height: bounds.height,
       };
+      // Update last window size in memory
+      lastWindowSize = {
+        width: bounds.width,
+        height: bounds.height,
+      };
       void saveConversation(currentConversation);
     }
     promptWindow = null;
@@ -148,6 +150,7 @@ export function hasPromptWindow(): boolean {
 /**
  * Gets the current window bounds for a conversation if its window is open.
  * Returns null if the conversation window is not open or doesn't match the given ID.
+ * Also updates the last window size in memory.
  */
 export function getConversationWindowBounds(
   conversationId: string,
@@ -160,6 +163,11 @@ export function getConversationWindowBounds(
     return null;
   }
   const bounds = promptWindow.getBounds();
+  // Update last window size in memory
+  lastWindowSize = {
+    width: bounds.width,
+    height: bounds.height,
+  };
   return {
     x: bounds.x,
     y: bounds.y,

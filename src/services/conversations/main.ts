@@ -186,22 +186,3 @@ export function createConversationId(): string {
   return uuidv7();
 }
 
-export async function getLastConversationWindowSize(): Promise<{
-  width: number;
-  height: number;
-} | null> {
-  const conversations = await listConversations(1, 0);
-  if (conversations.length === 0) {
-    return null;
-  }
-
-  const conversation = await loadConversation(conversations[0].id);
-  if (conversation.windowBounds === undefined) {
-    return null;
-  }
-
-  return {
-    width: conversation.windowBounds.width,
-    height: conversation.windowBounds.height,
-  };
-}
