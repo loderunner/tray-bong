@@ -110,49 +110,22 @@ export async function createPromptWindow(
     void promptWindow.loadFile(htmlPath);
   }
 
-  // Save window bounds when window moves or resizes
-  const saveWindowBounds = () => {
-    if (promptWindow === null || currentConversation === null) {
-      return;
-    }
-    const bounds = promptWindow.getBounds();
-    currentConversation.windowBounds = {
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
-    };
-    void saveConversation(currentConversation);
-  };
-
-  // Debounce saves to avoid excessive writes
-  let saveBoundsTimeout: NodeJS.Timeout | null = null;
-  const debouncedSaveWindowBounds = () => {
-    if (saveBoundsTimeout !== null) {
-      clearTimeout(saveBoundsTimeout);
-    }
-    saveBoundsTimeout = setTimeout(() => {
-      saveWindowBounds();
-      saveBoundsTimeout = null;
-    }, 500);
-  };
-
-  // Save initial bounds
-  saveWindowBounds();
-
-  promptWindow.on('move', debouncedSaveWindowBounds);
-  promptWindow.on('resize', debouncedSaveWindowBounds);
-
   promptWindow.on('blur', () => {
     promptWindow?.hide();
     markMenuNeedsUpdate();
   });
   promptWindow.on('closed', () => {
-    // Save bounds one final time before closing
-    if (saveBoundsTimeout !== null) {
-      clearTimeout(saveBoundsTimeout);
+    // Save bounds when window closes
+    if (promptWindow !== null && currentConversation !== null) {
+      const bounds = promptWindow.getBounds();
+      currentConversation.windowBounds = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+      };
+      void saveConversation(currentConversation);
     }
-    saveWindowBounds();
     promptWindow = null;
     currentConversation = null;
   });
@@ -170,6 +143,29 @@ export function showPromptWindow(): void {
 
 export function hasPromptWindow(): boolean {
   return promptWindow !== null;
+}
+
+/**
+ * Gets the current window bounds for a conversation if its window is open.
+ * Returns null if the conversation window is not open or doesn't match the given ID.
+ */
+export function getConversationWindowBounds(
+  conversationId: string,
+): { x: number; y: number; width: number; height: number } | null {
+  if (
+    promptWindow === null ||
+    currentConversation === null ||
+    currentConversation.id !== conversationId
+  ) {
+    return null;
+  }
+  const bounds = promptWindow.getBounds();
+  return {
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+  };
 }
 
 export function setupPromptWindowIPC(): void {
