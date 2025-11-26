@@ -49,14 +49,6 @@ const ConversationFileSchema = z.object({
 });
 type ConversationFile = z.infer<typeof ConversationFileSchema>;
 
-type ConversationFileSerialized = {
-  version: typeof CURRENT_VERSION;
-  conversation: Omit<z.input<typeof ConversationSchema>, 'createdAt' | 'updatedAt'> & {
-    createdAt: string;
-    updatedAt: string;
-  };
-};
-
 export function getConversationsDirectory(): string {
   return path.join(app.getPath('userData'), 'userData', 'conversations');
 }
@@ -98,12 +90,11 @@ export async function saveConversation(
 
   await fs.mkdir(directory, { recursive: true });
 
-  const file: ConversationFileSerialized = {
+  const file = {
     version: CURRENT_VERSION,
     conversation: {
       ...conversation,
-      createdAt: conversation.createdAt.toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     },
   };
 
