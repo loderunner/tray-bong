@@ -26,24 +26,26 @@ export async function getModel(): Promise<LanguageModel> {
 
   switch (settings.provider) {
     case 'openai': {
-      const provider = createOpenAI({ apiKey: settings.apiKey });
-      return provider(settings.model);
+      const provider = createOpenAI({ apiKey: settings.openai.apiKey });
+      return provider(settings.openai.model);
     }
     case 'anthropic': {
-      const provider = createAnthropic({ apiKey: settings.apiKey });
-      return provider(settings.model);
+      const provider = createAnthropic({ apiKey: settings.anthropic.apiKey });
+      return provider(settings.anthropic.model) as LanguageModel;
     }
     case 'google': {
-      const provider = createGoogleGenerativeAI({ apiKey: settings.apiKey });
-      return provider(settings.model);
+      const provider = createGoogleGenerativeAI({
+        apiKey: settings.google.apiKey,
+      });
+      return provider(settings.google.model);
     }
     case 'ollama': {
       const baseURL =
-        settings.ollamaEndpoint !== undefined && settings.ollamaEndpoint !== ''
-          ? `${settings.ollamaEndpoint}/api`
+        settings.ollama.endpointURL !== ''
+          ? `${settings.ollama.endpointURL}/api`
           : 'http://localhost:11434/api';
       const provider = createOllama({ baseURL });
-      return provider(settings.model);
+      return provider(settings.ollama.model);
     }
   }
 }

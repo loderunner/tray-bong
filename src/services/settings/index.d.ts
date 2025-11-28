@@ -1,10 +1,11 @@
-import type { ModelInfo, Provider, ProviderSettings } from './main';
+import type { ModelInfo, Provider } from './models';
+import type { Settings as SettingsType } from './settings';
 
 declare global {
   var Settings: {
-    getSettings: () => Promise<ProviderSettings>;
-    saveSettings: (settings: ProviderSettings) => Promise<void>;
-    PROVIDER_MODELS: Record<Provider, ModelInfo[]>;
+    getSettings: () => Promise<SettingsType>;
+    saveSettings: (settings: SettingsType) => Promise<void>;
+    Models: Record<Provider, ModelInfo[]>;
   };
 }
 

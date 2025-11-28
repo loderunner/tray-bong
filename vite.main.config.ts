@@ -1,14 +1,3 @@
-import path from 'node:path';
+import { createMainConfig } from './vite-config-helper';
 
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  build: {
-    sourcemap: true,
-  },
-});
+export default createMainConfig();

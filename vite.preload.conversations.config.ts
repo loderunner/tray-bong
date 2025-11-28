@@ -1,19 +1,3 @@
-import path from 'node:path';
+import { createPreloadConfig } from './vite-config-helper';
 
-import { defineConfig } from 'vite';
-
-export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  build: {
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        entryFileNames: 'conversations-preload.js',
-      },
-    },
-  },
-});
+export default createPreloadConfig('conversations');

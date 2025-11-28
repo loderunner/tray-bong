@@ -34,10 +34,15 @@ const UIMessagesSchema = z.array(z.looseObject({})).pipe(
   }),
 );
 
+const isoDatetimeToDate = z.codec(z.iso.datetime(), z.date(), {
+  decode: (isoString) => new Date(isoString),
+  encode: (date) => date.toISOString(),
+});
+
 const ConversationSchema = z.object({
   id: z.string(),
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime(),
+  createdAt: isoDatetimeToDate,
+  updatedAt: isoDatetimeToDate,
   title: z.string(),
   messages: UIMessagesSchema,
 });
@@ -57,9 +62,7 @@ function getConversationFilePath(id: string): string {
   return path.join(getConversationsDirectory(), `${id}.json`);
 }
 
-async function migrateConversation(
-  data: unknown,
-): Promise<ConversationFile> {
+async function migrateConversation(data: unknown): Promise<ConversationFile> {
   if (typeof data !== 'object' || data === null) {
     throw new Error('Invalid conversation file format');
   }

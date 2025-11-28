@@ -23,6 +23,7 @@ export default [
       parserOptions: {
         projectService: {
           allowDefaultProject: [
+            'vite-config-helper.ts',
             '*.{config,setup}.{js,mjs,cjs,ts}',
             'src/apps/prompt/prettier.config.mjs',
             'src/apps/settings/prettier.config.mjs',

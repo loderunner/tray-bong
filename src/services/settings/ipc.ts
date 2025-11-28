@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 
-import { type ProviderSettings, loadSettings, saveSettings } from './main';
+import { loadSettings, saveSettings } from './main';
+import { type Settings } from './settings';
 
 /**
  * Sets up IPC handlers for settings service.
@@ -11,10 +12,7 @@ export function setupSettingsIPC(): void {
     return await loadSettings();
   });
 
-  ipcMain.handle(
-    'settings:save',
-    async (_event, settings: ProviderSettings) => {
-      await saveSettings(settings);
-    },
-  );
+  ipcMain.handle('settings:save', async (_event, settings: Settings) => {
+    await saveSettings(settings);
+  });
 }
