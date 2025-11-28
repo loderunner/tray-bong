@@ -3,6 +3,7 @@ import path from 'node:path';
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
 import type { Conversation } from '@/services/conversations/main';
+import { updateConversationWindowBounds } from '@/services/conversations/main';
 import { useLogger } from '@/services/logger/useLogger';
 import { markMenuNeedsUpdate } from '@/tray';
 
@@ -11,6 +12,12 @@ declare const PROMPT_VITE_NAME: string | undefined;
 
 let promptWindow: BrowserWindow | null = null;
 let currentConversation: Conversation | null = null;
+let lastWindowBounds: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} | null = null;
 
 export async function createPromptWindow(
   conversation: Conversation,
@@ -34,9 +41,24 @@ export async function createPromptWindow(
 
   const preloadPath = path.join(__dirname, 'prompt-preload.js');
 
+  // Determine window bounds: use conversation's saved bounds, or last window bounds, or default
+  let windowBounds: { x?: number; y?: number; width: number; height: number };
+  if (conversation.windowBounds !== undefined) {
+    windowBounds = conversation.windowBounds;
+  } else if (lastWindowBounds !== null) {
+    windowBounds = lastWindowBounds;
+  } else {
+    windowBounds = {
+      width: 800,
+      height: 600,
+    };
+  }
+
   promptWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: windowBounds.width,
+    height: windowBounds.height,
+    x: windowBounds.x,
+    y: windowBounds.y,
     frame: false,
     transparent: true,
     backgroundColor: '#00000000',
@@ -97,6 +119,19 @@ export async function createPromptWindow(
     markMenuNeedsUpdate();
   });
   promptWindow.on('closed', () => {
+    // Save bounds when window closes
+    if (promptWindow !== null && currentConversation !== null) {
+      const bounds = promptWindow.getBounds();
+      // Update last window bounds in memory
+      lastWindowBounds = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+      };
+      // Update bounds separately without needing the full conversation object
+      void updateConversationWindowBounds(currentConversation.id, bounds);
+    }
     promptWindow = null;
     currentConversation = null;
   });
@@ -114,6 +149,37 @@ export function showPromptWindow(): void {
 
 export function hasPromptWindow(): boolean {
   return promptWindow !== null;
+}
+
+/**
+ * Gets the current window bounds for a conversation if its window is open.
+ * Returns null if the conversation window is not open or doesn't match the given ID.
+ * Also updates the last window bounds in memory.
+ */
+export function getConversationWindowBounds(
+  conversationId: string,
+): { x: number; y: number; width: number; height: number } | null {
+  if (
+    promptWindow === null ||
+    currentConversation === null ||
+    currentConversation.id !== conversationId
+  ) {
+    return null;
+  }
+  const bounds = promptWindow.getBounds();
+  // Update last window bounds in memory
+  lastWindowBounds = {
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+  };
+  return {
+    x: bounds.x,
+    y: bounds.y,
+    width: bounds.width,
+    height: bounds.height,
+  };
 }
 
 export function setupPromptWindowIPC(): void {
