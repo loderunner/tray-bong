@@ -11,7 +11,7 @@ export type ModelInfo = {
 
 export const anthropicModelIds = [
   'claude-sonnet-4-5',
-  'claude-opus-4-1',
+  'claude-opus-4-5',
   'claude-haiku-4-5',
 ] as const;
 export type AnthropicModelId = ArrayToUnion<typeof anthropicModelIds>;
@@ -38,7 +38,7 @@ export type ModelId = AnthropicModelId | OpenAIModelId | GoogleModelId;
 // Map IDs to display names
 const modelDisplayNames: Record<ModelId, string> = {
   'claude-sonnet-4-5': 'Claude Sonnet 4.5',
-  'claude-opus-4-1': 'Claude Opus 4.1',
+  'claude-opus-4-5': 'Claude Opus 4.5',
   'claude-haiku-4-5': 'Claude Haiku 4.5',
 
   'gpt-5.1': 'GPT-5.1',
