@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron';
 
-import { type Conversation, listConversations, saveConversation } from './main';
+import type { Conversation } from './conversation';
+import { listConversations, saveConversation } from './main';
 
 /**
  * Sets up IPC handlers for conversations service.

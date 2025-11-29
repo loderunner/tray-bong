@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import { BrowserWindow, ipcMain, shell } from 'electron';
 
-import { useLogger } from '@/services/logger/useLogger';
+import { useLogger } from '@/services/logger/main';
 import { getPromptsFilePath } from '@/services/prompts/main';
 
 declare const SETTINGS_VITE_DEV_SERVER_URL: string | undefined;
@@ -60,7 +60,6 @@ export function createSettingsWindow(): void {
   } else {
     const htmlPath = path.join(
       __dirname,
-      '..',
       '..',
       'renderer',
       SETTINGS_VITE_NAME!,

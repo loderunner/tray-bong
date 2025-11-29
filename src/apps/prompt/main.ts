@@ -2,8 +2,8 @@ import path from 'node:path';
 
 import { BrowserWindow, clipboard, ipcMain, nativeImage } from 'electron';
 
-import type { Conversation } from '@/services/conversations/main';
-import { useLogger } from '@/services/logger/useLogger';
+import type { Conversation } from '@/services/conversations/conversation';
+import { useLogger } from '@/services/logger/main';
 import { markMenuNeedsUpdate } from '@/tray';
 
 declare const PROMPT_VITE_DEV_SERVER_URL: string | undefined;
@@ -80,7 +80,6 @@ export async function createPromptWindow(
   } else {
     const htmlPath = path.join(
       __dirname,
-      '..',
       '..',
       'renderer',
       PROMPT_VITE_NAME!,

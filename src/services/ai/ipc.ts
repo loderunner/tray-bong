@@ -1,16 +1,10 @@
-import type { UIMessage, UIMessageChunk } from 'ai';
+import type { UIMessage } from 'ai';
 import { type MessageEvent, ipcMain } from 'electron';
 
 import { generateTextFromPrompt, streamChat } from './main';
+import type { StreamChatControlMessage } from './stream';
 
-import { useLogger } from '@/services/logger/useLogger';
-
-export type StreamChatMessageData =
-  | { chunk: UIMessageChunk }
-  | { done: true }
-  | { error: string };
-
-export type StreamChatControlMessage = { abort: true };
+import { useLogger } from '@/services/logger/main';
 
 /**
  * Sets up IPC handlers for AI service.

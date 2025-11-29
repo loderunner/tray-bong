@@ -12,7 +12,7 @@ import {
 } from './models';
 import { type Settings } from './settings';
 
-import { useLogger } from '@/services/logger/useLogger';
+import { useLogger } from '@/services/logger/main';
 
 const CURRENT_VERSION = 1;
 

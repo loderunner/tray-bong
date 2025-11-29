@@ -1,4 +1,4 @@
-import type { Conversation, ConversationMetadata } from './main';
+import type { Conversation, ConversationMetadata } from './conversation';
 
 declare global {
   var Conversations: {

@@ -1,22 +1,19 @@
 import { type ReactNode, createContext, useContext } from 'react';
 
-import { type LoggerBackend, getBackend } from './backend';
-import type { Logger } from './main';
+import type { Logger, LoggerBackend } from './logger';
 
 export const LoggerContext = createContext<LoggerBackend | null>(null);
 
 /**
  * Provides the logger backend to React components.
- * The backend is obtained via getBackend() which will use globalThis.LoggerBackend
- * in renderer world (set by exposeLogger() in preload).
+ * The backend uses globalThis.LoggerBackend set by exposeLogger() in preload.
  */
 export default function LoggerProvider({
   children,
 }: {
   children: ReactNode;
 }): ReactNode {
-  const backend = getBackend();
-  return <LoggerContext value={backend}>{children}</LoggerContext>;
+  return <LoggerContext value={LoggerBackend}>{children}</LoggerContext>;
 }
 
 /**

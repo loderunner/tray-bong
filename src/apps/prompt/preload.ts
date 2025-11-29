@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 import { exposeAI } from '@/services/ai/renderer';
-import type { Conversation } from '@/services/conversations/main';
+import type { Conversation } from '@/services/conversations/conversation';
 import { exposeConversations } from '@/services/conversations/renderer';
 import { exposeLogger } from '@/services/logger/renderer';
 

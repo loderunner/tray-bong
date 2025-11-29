@@ -1,9 +1,9 @@
 import type { UIMessage, UIMessageChunk } from 'ai';
 import { contextBridge, ipcRenderer } from 'electron';
 
-import type { StreamChatMessageData } from './ipc';
+import type { StreamChatMessageData } from './stream';
 
-import { useLogger } from '@/services/logger/useLogger';
+import { useLogger } from '@/services/logger/renderer';
 
 /**
  * Exposes AI API to the renderer process via context bridge.

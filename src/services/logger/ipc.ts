@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 
-import type { LogLevel } from './backend';
+import type { LogLevel } from './logger';
 import { writeLog } from './main';
 
 /**

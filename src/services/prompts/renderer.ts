@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import type { SystemPrompt } from './main';
+import type { SystemPrompt } from './prompt';
 
 /**
  * Exposes prompts API to the renderer process via context bridge.

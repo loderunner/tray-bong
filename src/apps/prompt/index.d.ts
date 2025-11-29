@@ -1,4 +1,4 @@
-import type { Conversation } from '@/services/conversations/main';
+import type { Conversation } from '@/services/conversations/conversation';
 
 declare global {
   var PromptWindow: {

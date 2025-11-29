@@ -6,7 +6,9 @@ import { app } from 'electron';
 import { uuidv7 } from 'uuidv7';
 import { ZodError, z } from 'zod';
 
-import { useLogger } from '@/services/logger/useLogger';
+import type { Conversation, ConversationMetadata } from './conversation';
+
+import { useLogger } from '@/services/logger/main';
 
 const CURRENT_VERSION = 1;
 
@@ -45,8 +47,7 @@ const ConversationSchema = z.object({
   updatedAt: isoDatetimeToDate,
   title: z.string(),
   messages: UIMessagesSchema,
-});
-export type Conversation = z.infer<typeof ConversationSchema>;
+}) satisfies z.ZodType<Conversation>;
 
 const ConversationFileSchema = z.object({
   version: z.literal(CURRENT_VERSION),
@@ -118,13 +119,6 @@ export async function loadConversation(id: string): Promise<Conversation> {
     );
   }
 }
-
-export type ConversationMetadata = {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  title: string;
-};
 
 export async function listConversations(
   limit = 5,

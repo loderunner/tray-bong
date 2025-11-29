@@ -7,7 +7,7 @@ import {
   getConversationsDirectory,
   loadConversation,
 } from "@/services/conversations/main";
-import { useLogger } from "@/services/logger/useLogger";
+import { useLogger } from "@/services/logger/main";
 
 declare const CONVERSATIONS_VITE_DEV_SERVER_URL: string | undefined;
 declare const CONVERSATIONS_VITE_NAME: string | undefined;
@@ -67,7 +67,6 @@ export function createConversationsWindow(): void {
   } else {
     const htmlPath = path.join(
       __dirname,
-      "..",
       "..",
       "renderer",
       CONVERSATIONS_VITE_NAME!,

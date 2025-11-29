@@ -4,13 +4,14 @@ import path from 'node:path';
 import { app } from 'electron';
 import { z } from 'zod';
 
+import type { SystemPrompt } from './prompt';
+
 const CURRENT_VERSION = 1;
 
 const SystemPromptSchema = z.object({
   label: z.string(),
   prompt: z.string(),
-});
-export type SystemPrompt = z.infer<typeof SystemPromptSchema>;
+}) satisfies z.ZodType<SystemPrompt>;
 
 const PromptsFileSchema = z.object({
   version: z.number(),

@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
-import type { Conversation, ConversationMetadata } from './main';
+import type { Conversation, ConversationMetadata } from './conversation';
 
 /**
  * Exposes conversations API to the renderer process via context bridge.

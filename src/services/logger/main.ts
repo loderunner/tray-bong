@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
+import type { LogLevel, Logger } from './logger';
 
-type LogLevel = 'ERROR' | 'INFO' | 'DEBUG';
+const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10MB
 const MIN_LOG_LEVEL: LogLevel =
   process.env.NODE_ENV === 'development' ? 'DEBUG' : 'INFO'; // Only show INFO and ERROR, not DEBUG
 
@@ -16,23 +16,6 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   INFO: 1,
   DEBUG: 2,
 };
-
-/**
- * Detects the execution context/world.
- *
- * @returns The world context: 'Main', 'Renderer', or 'ContextBridge'
- */
-export function whatWorld(): 'Renderer' | 'Main' | 'ContextBridge' {
-  if (typeof window === 'undefined') {
-    return 'Main';
-  }
-
-  if (typeof Buffer === 'undefined') {
-    return 'Renderer';
-  }
-
-  return 'ContextBridge';
-}
 
 /**
  * Converts a Date to an ISO string in local timezone.
@@ -160,8 +143,16 @@ export async function init(): Promise<void> {
   logBuffer.length = 0;
 }
 
-export type Logger = {
-  error: (message: string) => void;
-  info: (message: string) => void;
-  debug: (message: string) => void;
-};
+/**
+ * Creates a logger instance for the main process.
+ *
+ * @param moduleName - The name of the module creating the logger
+ * @returns A logger object with error, info, and debug methods
+ */
+export function useLogger(moduleName: string): Logger {
+  return {
+    error: (message: string) => writeLog('ERROR', 'Main', moduleName, message),
+    info: (message: string) => writeLog('INFO', 'Main', moduleName, message),
+    debug: (message: string) => writeLog('DEBUG', 'Main', moduleName, message),
+  };
+}

@@ -1,4 +1,4 @@
-import type { SystemPrompt } from './main';
+import type { SystemPrompt } from './prompt';
 
 declare global {
   var Prompts: {

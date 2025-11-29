@@ -17,7 +17,7 @@ import { twMerge } from 'tailwind-merge';
 
 import { Message } from './Message';
 
-import { type Conversation } from '@/services/conversations/main';
+import { type Conversation } from '@/services/conversations/conversation';
 import { useLogger } from '@/services/logger/LoggerProvider';
 
 function getSystemPrompt(conversation: Conversation): string {

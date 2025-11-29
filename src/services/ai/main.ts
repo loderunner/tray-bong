@@ -13,7 +13,7 @@ import {
 } from 'ai';
 import { createOllama } from 'ollama-ai-provider-v2';
 
-import { useLogger } from '@/services/logger/useLogger';
+import { useLogger } from '@/services/logger/main';
 import { loadSettings } from '@/services/settings/main';
 
 /**

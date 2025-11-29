@@ -1,7 +1,7 @@
 /// <reference types="./index.d.ts" />
 import { useEffect, useState } from "react";
 
-import type { ConversationMetadata } from "@/services/conversations/main";
+import type { ConversationMetadata } from "@/services/conversations/conversation";
 
 function formatDate(date: Date): string {
   const now = Date.now();

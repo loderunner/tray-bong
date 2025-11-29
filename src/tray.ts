@@ -7,9 +7,11 @@ import {
   showPromptWindow,
 } from './apps/prompt/main';
 import { createSettingsWindow } from './apps/settings/main';
+import type {
+  Conversation,
+  ConversationMetadata,
+} from './services/conversations/conversation';
 import {
-  type Conversation,
-  type ConversationMetadata,
   createConversationId,
   listConversations,
   loadConversation,
