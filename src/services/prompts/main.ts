@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { app } from 'electron';
@@ -6,7 +5,7 @@ import { z } from 'zod';
 
 import type { SystemPrompt } from './prompt';
 
-const CURRENT_VERSION = 1;
+import { createZodJSON } from '@/zod-json';
 
 const SystemPromptSchema = z.object({
   label: z.string(),
@@ -14,18 +13,15 @@ const SystemPromptSchema = z.object({
 }) satisfies z.ZodType<SystemPrompt>;
 
 const PromptsFileSchema = z.object({
-  version: z.number(),
   prompts: z.array(SystemPromptSchema),
 });
-type PromptsFile = z.infer<typeof PromptsFileSchema>;
 
 export function getPromptsFilePath(): string {
   return path.join(app.getPath('userData'), 'userData', 'prompts.json');
 }
 
-function getDefaultPrompts(): PromptsFile {
+function getDefaultPrompts(): z.infer<typeof PromptsFileSchema> {
   return {
-    version: CURRENT_VERSION,
     prompts: [
       {
         label: 'Code Review',
@@ -44,39 +40,14 @@ function getDefaultPrompts(): PromptsFile {
   };
 }
 
-function migratePrompts(data: unknown): PromptsFile {
-  if (typeof data !== 'object' || data === null) {
-    throw new Error('Invalid prompts file format');
-  }
-
-  const version =
-    'version' in data && typeof data.version === 'number' ? data.version : 0;
-
-  if (version > CURRENT_VERSION) {
-    throw new Error(`Unsupported prompts file version: ${version}`);
-  }
-
-  if (version < CURRENT_VERSION) {
-    // Future migrations would go here
-    // For now, if version is less than current, do nothing
-  }
-
-  return PromptsFileSchema.parse(data);
-}
+const promptsJSON = createZodJSON({
+  version: 1,
+  schema: PromptsFileSchema,
+  default: getDefaultPrompts,
+});
 
 export async function loadPrompts(): Promise<SystemPrompt[]> {
   const filePath = getPromptsFilePath();
-
-  try {
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    const parsed: unknown = JSON.parse(fileContent);
-    const migrated = migratePrompts(parsed);
-    return migrated.prompts;
-  } catch (_error) {
-    // If validation or migration fails, recreate default file
-    const defaultPrompts = getDefaultPrompts();
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, JSON.stringify(defaultPrompts, null, 2));
-    return defaultPrompts.prompts;
-  }
+  const data = await promptsJSON.load(filePath);
+  return data.prompts;
 }

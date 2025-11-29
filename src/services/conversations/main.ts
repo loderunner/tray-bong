@@ -9,8 +9,7 @@ import { ZodError, z } from 'zod';
 import type { Conversation, ConversationMetadata } from './conversation';
 
 import { useLogger } from '@/services/logger/main';
-
-const CURRENT_VERSION = 1;
+import { createZodJSON } from '@/zod-json';
 
 const UIMessagesSchema = z.array(z.looseObject({})).pipe(
   z.transform(async (messages, ctx) => {
@@ -49,11 +48,10 @@ const ConversationSchema = z.object({
   messages: UIMessagesSchema,
 }) satisfies z.ZodType<Conversation>;
 
-const ConversationFileSchema = z.object({
-  version: z.literal(CURRENT_VERSION),
-  conversation: ConversationSchema,
+const conversationJSON = createZodJSON({
+  version: 1,
+  schema: ConversationSchema,
 });
-type ConversationFile = z.infer<typeof ConversationFileSchema>;
 
 export function getConversationsDirectory(): string {
   return path.join(app.getPath('userData'), 'userData', 'conversations');
@@ -61,29 +59,6 @@ export function getConversationsDirectory(): string {
 
 function getConversationFilePath(id: string): string {
   return path.join(getConversationsDirectory(), `${id}.json`);
-}
-
-async function migrateConversation(data: unknown): Promise<ConversationFile> {
-  if (typeof data !== 'object' || data === null) {
-    throw new Error('Invalid conversation file format');
-  }
-
-  const version =
-    'version' in data && typeof data.version === 'number' ? data.version : 0;
-
-  if (version === 0) {
-    throw new Error('Missing conversation file version');
-  }
-
-  if (version > CURRENT_VERSION) {
-    throw new Error(`Unsupported conversation file version: ${version}`);
-  }
-
-  if (version < CURRENT_VERSION) {
-    // Future migrations would go here
-  }
-
-  return ConversationFileSchema.parseAsync(data);
 }
 
 export async function saveConversation(
@@ -94,30 +69,17 @@ export async function saveConversation(
 
   await fs.mkdir(directory, { recursive: true });
 
-  const file: ConversationFile = {
-    version: CURRENT_VERSION,
-    conversation: {
-      ...conversation,
-      updatedAt: new Date(),
-    },
+  const updatedConversation: Conversation = {
+    ...conversation,
+    updatedAt: new Date(),
   };
 
-  await fs.writeFile(filePath, JSON.stringify(file, null, 2));
+  await conversationJSON.save(updatedConversation, filePath);
 }
 
 export async function loadConversation(id: string): Promise<Conversation> {
   const filePath = getConversationFilePath(id);
-
-  try {
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    const parsed: unknown = JSON.parse(fileContent);
-    const migrated = await migrateConversation(parsed);
-    return migrated.conversation;
-  } catch (error) {
-    throw new Error(
-      `Failed to load conversation ${id}: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
+  return conversationJSON.load(filePath);
 }
 
 export async function listConversations(
@@ -139,14 +101,12 @@ export async function listConversations(
     for (const file of jsonFiles.slice(offset, offset + limit)) {
       const filePath = path.join(directory, file);
       try {
-        const fileContent = await fs.readFile(filePath, 'utf-8');
-        const parsed: unknown = JSON.parse(fileContent);
-        const migrated = await migrateConversation(parsed);
+        const conversation = await conversationJSON.load(filePath);
         metadata.push({
-          id: migrated.conversation.id,
-          createdAt: migrated.conversation.createdAt,
-          updatedAt: migrated.conversation.updatedAt,
-          title: migrated.conversation.title,
+          id: conversation.id,
+          createdAt: conversation.createdAt,
+          updatedAt: conversation.updatedAt,
+          title: conversation.title,
         });
       } catch (error) {
         // Skip invalid files

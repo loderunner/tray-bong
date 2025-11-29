@@ -26,7 +26,6 @@ export type OllamaOptions = {
 };
 
 export type Settings = {
-  version: number;
   provider: Provider;
   anthropic: AnthropicOptions;
   openai: OpenAIOptions;
