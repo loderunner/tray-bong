@@ -14,7 +14,7 @@ export function AnthropicSettings({ settings, onChange, saved }: Props) {
 
   return (
     <>
-      <div>
+      <div className="card">
         <label
           className="mb-2 block text-sm font-medium text-gray-700"
           htmlFor="anthropic-model"
@@ -40,7 +40,7 @@ export function AnthropicSettings({ settings, onChange, saved }: Props) {
         </select>
       </div>
 
-      <div>
+      <div className="card">
         <label
           className="mb-2 block text-sm font-medium text-gray-700"
           htmlFor="anthropic-apiKey"

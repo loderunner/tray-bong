@@ -1,5 +1,6 @@
 /// <reference types="./index.d.ts" />
-import { useEffect, useState } from 'react';
+import { GearIcon } from '@phosphor-icons/react';
+import { useCallback, useEffect, useState } from 'react';
 import { useImmer } from 'use-immer';
 
 import { AnthropicSettings } from './AnthropicSettings';
@@ -39,64 +40,66 @@ export default function App() {
     }, 2000);
   }
 
+  const onChangeProvider = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newProvider = e.target.value as Provider;
+      updateSettings((draft) => {
+        if (draft === null) {
+          return;
+        }
+        draft.provider = newProvider;
+      });
+    },
+    [updateSettings],
+  );
+
   if (settings === null) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
+      <div className="settings flex h-full items-center justify-center bg-linear-to-br from-cyan-50 via-blue-50 to-indigo-100 p-6 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+        <div className="app-drag-region h-9 w-full"></div>
         <p className="text-gray-500">Loading settings...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col p-6">
-      <h1 className="mb-6 text-2xl font-bold">Settings</h1>
+    <div className="settings flex h-full flex-col overflow-hidden bg-linear-to-br from-cyan-50 via-blue-50 to-indigo-100 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+      <div className="app-drag-region h-9 w-full"></div>
+      {/* Header */}
+      <div className="border-b border-white/30 bg-white/20 px-8 py-6 backdrop-blur-xl transition-colors duration-300 not-dark:shadow-sm not-dark:shadow-blue-100/20 dark:border-slate-800/50 dark:bg-slate-900/20">
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-blue-50/80 p-2 not-dark:backdrop-blur-sm dark:bg-slate-800/50">
+            <GearIcon className="h-6 w-6 text-blue-600 dark:text-slate-300" />
+          </div>
+          <div>
+            <h1 className="mb-1 text-2xl font-semibold text-slate-800 dark:text-slate-100">
+              Settings
+            </h1>
+            <p className="text-sm text-slate-600/80 dark:text-slate-400">
+              Configure your AI assistant
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <div className="flex flex-1 flex-col gap-4">
-        <div>
-          <label
-            className="mb-2 block text-sm font-medium text-gray-700"
-            htmlFor="provider"
-          >
-            Provider
+      {/* Settings Form */}
+      <div className="flex-1 space-y-6 overflow-y-auto px-8 py-8">
+        {/* Provider Section */}
+        <div className="card">
+          <label className="label">
+            <span>Provider</span>
+            <p>Select your AI model provider</p>
+
+            <select value={settings.provider} onChange={onChangeProvider}>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google</option>
+              <option value="ollama">Ollama</option>
+            </select>
           </label>
-          <select
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-            id="provider"
-            value={settings.provider}
-            onChange={(e) => {
-              const newProvider = e.target.value as Provider;
-              updateSettings((draft) => {
-                if (draft === null) {
-                  return;
-                }
-                draft.provider = newProvider;
-              });
-            }}
-          >
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-            <option value="google">Google</option>
-            <option value="ollama">Ollama</option>
-          </select>
         </div>
 
-        <div className={settings.provider === 'anthropic' ? '' : 'hidden'}>
-          <AnthropicSettings
-            saved={saved}
-            settings={settings.anthropic}
-            onChange={(anthropic) => {
-              updateSettings((draft) => {
-                if (draft === null) {
-                  return;
-                }
-                draft.anthropic.model = anthropic.model;
-                draft.anthropic.apiKey = anthropic.apiKey;
-              });
-            }}
-          />
-        </div>
-
-        <div className={settings.provider === 'openai' ? '' : 'hidden'}>
+        {settings.provider === 'openai' && (
           <OpenAISettings
             saved={saved}
             settings={settings.openai}
@@ -110,9 +113,25 @@ export default function App() {
               });
             }}
           />
-        </div>
+        )}
 
-        <div className={settings.provider === 'google' ? '' : 'hidden'}>
+        {settings.provider === 'anthropic' && (
+          <AnthropicSettings
+            saved={saved}
+            settings={settings.anthropic}
+            onChange={(anthropic) => {
+              updateSettings((draft) => {
+                if (draft === null) {
+                  return;
+                }
+                draft.anthropic.model = anthropic.model;
+                draft.anthropic.apiKey = anthropic.apiKey;
+              });
+            }}
+          />
+        )}
+
+        {settings.provider === 'google' && (
           <GoogleSettings
             saved={saved}
             settings={settings.google}
@@ -126,9 +145,9 @@ export default function App() {
               });
             }}
           />
-        </div>
+        )}
 
-        <div className={settings.provider === 'ollama' ? '' : 'hidden'}>
+        {settings.provider === 'ollama' && (
           <OllamaSettings
             saved={saved}
             settings={settings.ollama}
@@ -142,7 +161,7 @@ export default function App() {
               });
             }}
           />
-        </div>
+        )}
 
         <div className="mt-4 flex items-center justify-between">
           <button

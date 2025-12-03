@@ -1,3 +1,6 @@
+import baseConfig from '../../../prettier.config.mjs';
+
 export default {
-  plugins: ["prettier-plugin-tailwindcss"],
+  ...baseConfig,
+  tailwindStylesheet: './index.css',
 };

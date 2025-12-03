@@ -11,7 +11,7 @@ type Props = {
 export function OllamaSettings({ settings, onChange }: Props) {
   return (
     <>
-      <div>
+      <div className="card">
         <label
           className="mb-2 block text-sm font-medium text-gray-700"
           htmlFor="ollama-model"
@@ -42,7 +42,7 @@ export function OllamaSettings({ settings, onChange }: Props) {
         </p>
       </div>
 
-      <div>
+      <div className="card">
         <label
           className="mb-2 block text-sm font-medium text-gray-700"
           htmlFor="ollama-endpoint"

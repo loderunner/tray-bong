@@ -21,8 +21,10 @@ export function createSettingsWindow(): void {
 
   settingsWindow = new BrowserWindow({
     width: 800,
-    height: 600,
-    resizable: false,
+    height: 800,
+    resizable: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: true,
     webPreferences: {
       preload: preloadPath,
       sandbox: process.env.NODE_ENV !== 'development',
