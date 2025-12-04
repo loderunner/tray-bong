@@ -15,7 +15,7 @@ const baseConfig: UserConfig = {
   },
   optimizeDeps: {
     force: true,
-    exclude: ['use-immer'],
+    exclude: ['use-immer', '@phosphor-icons/react'],
   },
 };
 

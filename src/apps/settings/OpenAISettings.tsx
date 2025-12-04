@@ -15,14 +15,8 @@ export function OpenAISettings({ settings, onChange, saved }: Props) {
   return (
     <>
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="openai-model"
-        >
-          Model
-        </label>
+        <label htmlFor="openai-model">Model</label>
         <select
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="openai-model"
           value={settings.model}
           onChange={(e) => {
@@ -41,14 +35,8 @@ export function OpenAISettings({ settings, onChange, saved }: Props) {
       </div>
 
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="openai-apiKey"
-        >
-          API Key
-        </label>
+        <label htmlFor="openai-apiKey">API Key</label>
         <SecureInput
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="openai-apiKey"
           placeholder="Enter API key"
           saved={saved}

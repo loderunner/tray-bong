@@ -15,14 +15,8 @@ export function GoogleSettings({ settings, onChange, saved }: Props) {
   return (
     <>
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="google-model"
-        >
-          Model
-        </label>
+        <label htmlFor="google-model">Model</label>
         <select
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="google-model"
           value={settings.model}
           onChange={(e) => {
@@ -41,14 +35,8 @@ export function GoogleSettings({ settings, onChange, saved }: Props) {
       </div>
 
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="google-apiKey"
-        >
-          API Key
-        </label>
+        <label htmlFor="google-apiKey">API Key</label>
         <SecureInput
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="google-apiKey"
           placeholder="Enter API key"
           saved={saved}

@@ -12,14 +12,8 @@ export function OllamaSettings({ settings, onChange }: Props) {
   return (
     <>
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="ollama-model"
-        >
-          Model
-        </label>
+        <label htmlFor="ollama-model">Model</label>
         <input
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="ollama-model"
           placeholder="e.g., llama3.2:1b"
           type="text"
@@ -35,7 +29,7 @@ export function OllamaSettings({ settings, onChange }: Props) {
           )}
         >
           Tip: Run{' '}
-          <code className="rounded bg-gray-100 px-1 select-text">
+          <code className="rounded bg-gray-100 px-1 select-text dark:bg-slate-700/50 dark:text-slate-300">
             ollama pull {settings.model.trim()}
           </code>{' '}
           in a shell to download the model
@@ -43,14 +37,8 @@ export function OllamaSettings({ settings, onChange }: Props) {
       </div>
 
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="ollama-endpoint"
-        >
-          Ollama Endpoint
-        </label>
+        <label htmlFor="ollama-endpoint">Ollama Endpoint</label>
         <input
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="ollama-endpoint"
           placeholder="http://localhost:11434"
           type="text"

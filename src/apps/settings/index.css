@@ -22,9 +22,10 @@
         p {
           @apply mt-1 mb-3 text-xs text-slate-600/80 dark:text-slate-500;
         }
-        select {
-          @apply w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 text-slate-900 transition-all duration-200 not-dark:shadow-sm not-dark:backdrop-blur-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:outline-none dark:border-slate-700/50 dark:bg-slate-900/60 dark:text-slate-100 dark:focus:border-blue-500/50 dark:focus:ring-blue-500/20;
-        }
+      }
+      select,
+      input {
+        @apply w-full rounded-xl border border-white/60 bg-white/80 px-4 py-3 text-slate-900 transition-all duration-200 not-dark:shadow-sm not-dark:backdrop-blur-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 focus:outline-none dark:border-slate-700/50 dark:bg-slate-900/60 dark:text-slate-100 dark:focus:border-blue-500/50 dark:focus:ring-blue-500/20;
       }
     }
   }

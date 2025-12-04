@@ -15,14 +15,8 @@ export function AnthropicSettings({ settings, onChange, saved }: Props) {
   return (
     <>
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="anthropic-model"
-        >
-          Model
-        </label>
+        <label htmlFor="anthropic-model">Model</label>
         <select
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="anthropic-model"
           value={settings.model}
           onChange={(e) => {
@@ -41,14 +35,8 @@ export function AnthropicSettings({ settings, onChange, saved }: Props) {
       </div>
 
       <div className="card">
-        <label
-          className="mb-2 block text-sm font-medium text-gray-700"
-          htmlFor="anthropic-apiKey"
-        >
-          API Key
-        </label>
+        <label htmlFor="anthropic-apiKey">API Key</label>
         <SecureInput
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           id="anthropic-apiKey"
           placeholder="Enter API key"
           saved={saved}

@@ -1,5 +1,5 @@
 /// <reference types="./index.d.ts" />
-import { GearIcon } from '@phosphor-icons/react';
+import { FileIcon, GearIcon } from '@phosphor-icons/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useImmer } from 'use-immer';
 
@@ -163,13 +163,22 @@ export default function App() {
           />
         )}
 
-        <div className="mt-4 flex items-center justify-between">
+        {/* Prompts File Section */}
+        <div className="card flex items-start justify-between">
+          <label className="label mb-0">
+            <span>Prompts File</span>
+            <p>View and edit your custom prompts</p>
+          </label>
           <button
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-base text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-lg border border-white/50 bg-white/60 px-4 py-2 text-slate-700 transition-all duration-200 not-dark:shadow-sm not-dark:backdrop-blur-sm hover:border-white/70 hover:bg-white/80 hover:text-slate-900 not-dark:hover:shadow-md dark:border-slate-600/50 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-100"
             onClick={handleOpenPromptsFile}
           >
-            Reveal Prompts File
+            <FileIcon className="h-4 w-4" />
+            <span className="text-sm">Reveal</span>
           </button>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between">
           <button
             className="rounded-md bg-blue-500 px-6 py-2 text-base text-white shadow-sm transition-colors hover:bg-blue-600"
             onClick={handleSave}
