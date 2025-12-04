@@ -1,5 +1,6 @@
 /// <reference types="./index.d.ts" />
-import { FileIcon, GearIcon } from '@phosphor-icons/react';
+import { FileIcon } from '@phosphor-icons/react/File';
+import { GearIcon } from '@phosphor-icons/react/Gear';
 import { useCallback, useEffect, useState } from 'react';
 import { useImmer } from 'use-immer';
 
@@ -63,7 +64,7 @@ export default function App() {
   }
 
   return (
-    <div className="settings flex h-full flex-col overflow-hidden bg-linear-to-br from-cyan-50 via-blue-50 to-indigo-100 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
+    <div className="settings flex h-full flex-col overflow-hidden bg-linear-to-br from-cyan-50/50 via-blue-50/50 to-indigo-100/50 text-slate-900 transition-colors duration-300 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100">
       <div className="app-drag-region h-9 w-full"></div>
       {/* Header */}
       <div className="border-b border-white/30 bg-white/20 px-8 py-6 backdrop-blur-xl transition-colors duration-300 not-dark:shadow-sm not-dark:shadow-blue-100/20 dark:border-slate-800/50 dark:bg-slate-900/20">
