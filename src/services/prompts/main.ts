@@ -2,10 +2,9 @@ import path from 'node:path';
 
 import { app } from 'electron';
 import { z } from 'zod';
+import { createZodJSON } from 'zod-file/json';
 
 import type { SystemPrompt } from './prompt';
-
-import { createZodJSON } from '@/zod-json';
 
 const SystemPromptSchema = z.object({
   label: z.string(),

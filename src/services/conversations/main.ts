@@ -5,11 +5,11 @@ import { validateUIMessages } from 'ai';
 import { app } from 'electron';
 import { uuidv7 } from 'uuidv7';
 import { ZodError, z } from 'zod';
+import { createZodJSON } from 'zod-file/json';
 
 import type { Conversation, ConversationMetadata } from './conversation';
 
 import { useLogger } from '@/services/logger/main';
-import { createZodJSON } from '@/zod-json';
 
 const UIMessagesSchema = z.array(z.looseObject({})).pipe(
   z.transform(async (messages, ctx) => {

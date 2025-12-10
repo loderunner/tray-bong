@@ -2,6 +2,7 @@ import path from 'node:path';
 
 import { app, safeStorage } from 'electron';
 import { z } from 'zod';
+import { createZodJSON } from 'zod-file/json';
 
 import {
   Providers,
@@ -10,8 +11,6 @@ import {
   openaiModelIds,
 } from './models';
 import { type Settings } from './settings';
-
-import { createZodJSON } from '@/zod-json';
 
 const SecureStringSchema = z.codec(z.base64(), z.string(), {
   encode: (value) => encryptAPIKey(value),
