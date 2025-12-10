@@ -5,7 +5,6 @@
   conversation as default
 - configure provider settings like reasoning budget, temperature, topK, etc.
 - System-wide shortcut
-- Use the zod-json layer for persistence
 
 # Later
 
